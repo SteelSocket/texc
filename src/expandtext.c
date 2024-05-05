@@ -135,7 +135,7 @@ char *expandtext_add_from_src(const char *match, const char *expand,
     return NULL;
 }
 
-char *expandtext_delete_by_match(const char *match) {
+char *__delete_by_match(const char *match) {
     mutex_lock(data.mutex);
     int found_index = -1;
 
@@ -171,7 +171,7 @@ char *expandtext_delete_by_match(const char *match) {
     return NULL;
 }
 
-char *expandtext_delete_by_id(size_t id) {
+char *__delete_by_id(size_t id) {
     int count;
     char *condition;
     str_format(condition, "id = %zd", id);
@@ -208,5 +208,17 @@ char *expandtext_delete_by_id(size_t id) {
     }
 
     LOGGER_FORMAT_LOG(LOGGER_INFO, "deleted expandtext with id=%zd", id);
+    return NULL;
+}
+
+char *expandtext_delete(const char *ident, ETxIdentifier by) {
+    if (by == ETx_BY_MATCH) {
+        return __delete_by_match(ident);
+    }
+
+    if (by == ETx_BY_ID) {
+        return __delete_by_id(atoi(ident));
+    }
+
     return NULL;
 }

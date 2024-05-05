@@ -26,6 +26,32 @@
         }                                                                \
     } while (0)
 
+char *__get_identifier_param(Request *request, const char **identifier, ETxIdentifier *itype) {
+    const char *match = request_get_query(request, "match");
+    const char *id = request_get_query(request, "id");
+
+    if ((match != NULL) + (id != NULL) > 1) {
+        return strdup("Multiple identifiers specified at the same time");
+    }
+
+    if (match != NULL) {
+        *identifier = match;
+        *itype = ETx_BY_MATCH;
+    } else if (id != NULL) {
+        if (!str_isnumber(id))
+            return "The given id is not a number";
+
+        if (atoi(id) < 0)
+            return "id should be a positive integer";
+
+        *identifier = id;
+        *itype = ETx_BY_ID;
+    }
+
+    return NULL;
+}
+
+
 Response *__handle_add(Request *request) {
     const char *match;
     __QUERY_REQUIRED_GET(request, match, "match", "string");
@@ -49,21 +75,16 @@ Response *__handle_add(Request *request) {
 }
 
 Response *__handle_remove(Request *request) {
-    const char *match = request_get_query(request, "match");
-    const char *id = request_get_query(request, "id");
+    const char *identifier;
+    ETxIdentifier itype;
 
-    char *error;
-    if (match != NULL) {
-        error = expandtext_delete_by_match(match);
-    } else if (id != NULL) {
-        if (str_isnumber(id) && atoi(id) >= 0) {
-            error = expandtext_delete_by_id(atoi(id));
-        } else {
-            error = strdup("id param should be a positive integer");
-        }
+    char *error = __get_identifier_param(request, &identifier, &itype);
+
+    if (error == NULL) {
+        error = expandtext_delete(identifier, itype);
     }
 
-    if (error) {
+    if (error != NULL) {
         LOGGER_WARNING(error);
         Response *err = __RESPONSE_ERR(error);
         free(error);

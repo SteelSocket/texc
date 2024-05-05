@@ -13,6 +13,11 @@ typedef struct {
     Tag *expand;
 } ExpandText;
 
+typedef enum {
+    ETx_BY_MATCH,
+    ETx_BY_ID,
+} ETxIdentifier;
+
 void expandtext_free(ExpandText *exptext);
 
 bool expandtext_match_exists(const char *match);
@@ -23,6 +28,4 @@ char *expandtext_add_from_request(const char *match, const char *expand,
 char *expandtext_add_from_src(const char *match, const char *expand,
                               DataSqlRow attr_data);
 
-char *expandtext_delete_by_match(const char *match);
-
-char *expandtext_delete_by_id(size_t id);
+char *expandtext_delete(const char *ident, ETxIdentifier by);
