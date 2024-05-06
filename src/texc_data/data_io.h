@@ -1,9 +1,6 @@
 #pragma once
 
-#include "../expandtext.h"
-#include "data_sql.h"
-
-char *data_io_expandtext_as_csv(ExpandText *exptext, DataSqlRow row);
+char *data_io_expandtexts_as_csv(const char *select_condition);
 
 void data_io_save();
 

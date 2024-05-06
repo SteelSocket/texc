@@ -15,7 +15,7 @@ char *__get_save_file() {
     return save_path;
 }
 
-char *data_io_expandtext_as_csv(ExpandText *exptext, DataSqlRow row) {
+char *__expandtext_as_csv(ExpandText *exptext, DataSqlRow row) {
     char *csv_match = csv_to_field(exptext->match->tag_source);
     char *csv_expand = csv_to_field(exptext->expand->tag_source);
 
@@ -27,31 +27,42 @@ char *data_io_expandtext_as_csv(ExpandText *exptext, DataSqlRow row) {
     return ret;
 }
 
+char *data_io_expandtexts_as_csv(const char *select_condition) {
+    int count;
+    DataSqlRow *rows = data_sql_get(NULL, &count);
+    if (rows == NULL)
+        return NULL;
+
+    char *csv_string;
+    str_mcpy(csv_string, "match,expand,id\n");
+
+    for (int i = 0; i < count; i++) {
+        DataSqlRow row = rows[i];
+        ExpandText *exptext = data.exptexts[row.index];
+        char *csv_line = __expandtext_as_csv(exptext, row);
+
+        str_rcat(csv_string, csv_line);
+
+        free(csv_line);
+    }
+
+    free(rows);
+    return csv_string;
+}
+
 void data_io_save() {
     char *save_path = __get_save_file();
     FILE *file = fopen(save_path, "w");
     free(save_path);
 
-    int count;
-    DataSqlRow *rows = data_sql_get(NULL, &count);
-    if (rows == NULL) {
-        return;
-    }
-    fprintf(file, "match,expand,id\n");
-
-    for (int i = 0; i < count; i++) {
-        DataSqlRow row = rows[i];
-        ExpandText *exptext = data.exptexts[row.index];
-        char *csv_line = data_io_expandtext_as_csv(exptext, row);
-
-        fprintf(file, "%s", csv_line);
-
-        free(csv_line);
+    char *csv_string = data_io_expandtexts_as_csv(NULL);
+    if (csv_string) {
+        fprintf(file, "%s", csv_string);
+        free(csv_string);
+        LOGGER_INFO("expandtexts saved to file successfully");
     }
 
-    LOGGER_INFO("expandtexts saved to file successfully");
     fclose(file);
-    free(rows);
 }
 
 void data_io_load() {
