@@ -40,13 +40,15 @@ char *__get_identifier_param(Request *request, const char **identifier,
         *itype = ETx_BY_MATCH;
     } else if (id != NULL) {
         if (!str_isnumber(id))
-            return "The given id is not a number";
+            return strdup("The given id is not a number");
 
         if (atoi(id) < 0)
-            return "id should be a positive integer";
+            return strdup("id should be a positive integer");
 
         *identifier = id;
         *itype = ETx_BY_ID;
+    } else {
+        return strdup("identifier not specified");
     }
 
     return NULL;
@@ -56,7 +58,7 @@ Response *__handle_add(Request *request) {
     const char *match;
     __QUERY_REQUIRED_GET(request, match, "match", "string");
 
-    if (expandtext_match_exists(match))
+    if (expandtext_index(match) != -1)
         return __RESPONSE_ERR("match with the given word already exists");
 
     const char *expand;
@@ -114,6 +116,27 @@ Response *__handle_close(Request *request) {
     return __RESPONSE_SUCESS;
 }
 
+Response *__handle_config(Request *request) {
+    const char *identifier;
+    ETxIdentifier itype;
+
+    char *error = __get_identifier_param(request, &identifier, &itype);
+
+    if (error == NULL) {
+        mutex_lock(data.mutex);
+        error = expandtext_config(identifier, itype, request);
+        mutex_unlock(data.mutex);
+    }
+
+    if (error != NULL) {
+        LOGGER_WARNING(error);
+        Response *err = __RESPONSE_ERR(error);
+        free(error);
+        return err;
+    }
+    return __RESPONSE_SUCESS;
+}
+
 Response *__server_handle_api(Request *request) {
     if (str_eq(request->path, "/add"))
         return __handle_add(request);
@@ -127,8 +150,12 @@ Response *__server_handle_api(Request *request) {
     else if (str_eq(request->path, "/close"))
         return __handle_close(request);
 
+    else if (str_eq(request->path, "/config"))
+        return __handle_config(request);
+
     else if (str_eq(request->path, "/version"))
         return response_new(200, TEXC_VERSION);
+
     else
         return response_new(404, "Api not found");
 

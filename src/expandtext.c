@@ -3,11 +3,13 @@
 #include "texc_data/data.h"
 #include "texc_data/data_io.h"
 #include "texc_data/data_sql.h"
+#include "texc_data/data_sql_row.h"
 
 #include "texc_tags/tagmap.h"
 #include "texc_tags/tags.h"
 
 #include "texc_utils/array.h"
+#include "texc_utils/http_request.h"
 #include "texc_utils/logger.h"
 #include "texc_utils/str.h"
 #include "texc_utils/thread.h"
@@ -72,71 +74,7 @@ void expandtext_free(ExpandText *exptext) {
     free(exptext);
 }
 
-bool expandtext_match_exists(const char *match) {
-    EXPANDTEXT_ITER(i, {
-        if (str_eq(data.exptexts[i]->match->tag_source, match)) {
-            return true;
-        }
-    });
-
-    return false;
-}
-
-void __expandtext_add(ExpandText *exptext, DataSqlRow attrs) {
-    int index = data_sql_missing_int("idx");
-
-    if (index >= data.exptext_cap) {
-        data.exptext_cap = data.exptext_cap * 2;
-        data.exptexts =
-            realloc(data.exptexts, data.exptext_cap * sizeof(ExpandText *));
-    }
-
-    data.exptexts[index] = exptext;
-    data.exptext_len++;
-
-    attrs.index = index;
-    data_sql_add(attrs);
-}
-
-char *expandtext_add_from_request(const char *match, const char *expand,
-                                  Request *request) {
-    char *error;
-    ExpandText *exptext = __expandtext_new(match, expand, &error);
-    if (error != NULL) {
-        return error;
-    }
-
-    mutex_lock(data.mutex);
-
-    int id = data_sql_missing_int("id");
-    __expandtext_add(exptext, (DataSqlRow){
-                                  .id = id,
-                              });
-
-    data_io_save();
-    mutex_unlock(data.mutex);
-
-    return NULL;
-}
-
-char *expandtext_add_from_src(const char *match, const char *expand,
-                              DataSqlRow attr_data) {
-    char *error;
-    ExpandText *exptext = __expandtext_new(match, expand, &error);
-    if (error != NULL) {
-        return error;
-    }
-    mutex_lock(data.mutex);
-
-    __expandtext_add(exptext, attr_data);
-
-    mutex_unlock(data.mutex);
-
-    return NULL;
-}
-
-char *__delete_by_match(const char *match) {
-    mutex_lock(data.mutex);
+int expandtext_index(const char *match) {
     int found_index = -1;
 
     EXPANDTEXT_ITER(i, {
@@ -149,7 +87,73 @@ char *__delete_by_match(const char *match) {
         }
     });
 
-    if (found_index == -1) {
+    return found_index;
+}
+
+void __expandtext_add(ExpandText *exptext, DataSqlRow row) {
+    int index = data_sql_missing_int("idx");
+
+    if (index >= data.exptext_cap) {
+        data.exptext_cap = data.exptext_cap * 2;
+        data.exptexts =
+            realloc(data.exptexts, data.exptext_cap * sizeof(ExpandText *));
+    }
+
+    data.exptexts[index] = exptext;
+    data.exptext_len++;
+
+    row.index = index;
+    data_sql_add(row);
+}
+
+char *expandtext_add_from_request(const char *match, const char *expand,
+                                  Request *request) {
+    mutex_lock(data.mutex);
+
+    char *error;
+    ExpandText *exptext = __expandtext_new(match, expand, &error);
+
+    if (error != NULL) {
+        mutex_unlock(data.mutex);
+        return error;
+    }
+
+    DataSqlRow row = data_sql_row_from_request(request, &error);
+    if (error != NULL) {
+        expandtext_free(exptext);
+        mutex_unlock(data.mutex);
+        return error;
+    }
+
+    __expandtext_add(exptext, row);
+
+    data_io_save();
+    mutex_unlock(data.mutex);
+
+    return NULL;
+}
+
+char *expandtext_add_from_src(const char *match, const char *expand,
+                              DataSqlRow attrs) {
+    char *error;
+    ExpandText *exptext = __expandtext_new(match, expand, &error);
+    if (error != NULL) {
+        return error;
+    }
+    mutex_lock(data.mutex);
+
+    __expandtext_add(exptext, attrs);
+
+    mutex_unlock(data.mutex);
+
+    return NULL;
+}
+
+char *__delete_by_match(const char *match) {
+    mutex_lock(data.mutex);
+    int index = expandtext_index(match);
+
+    if (index == -1) {
         char *err;
         str_format(err, "given match word '%s' does not exists", match);
         mutex_unlock(data.mutex);
@@ -157,7 +161,7 @@ char *__delete_by_match(const char *match) {
     }
 
     char *condition;
-    str_format(condition, "idx = %d", found_index);
+    str_format(condition, "idx = %d", index);
     bool deleted = data_sql_delete(condition);
     free(condition);
 
@@ -221,4 +225,54 @@ char *expandtext_delete(const char *ident, ETxIdentifier by) {
     }
 
     return NULL;
+}
+
+char *__prepare_update_config(Request *request, char **error) {
+    char *update = malloc(sizeof(char) * 1);
+    update[0] = '\0';
+
+    const char *enable = request_get_query(request, "enabled");
+    if (enable != NULL) {
+        if (!(str_eq(enable, "true") || str_eq(enable, "false"))) {
+            *error = strdup("enable param must be a boolean value");
+            return NULL;
+        }
+
+        str_rformat(update, "enabled = %d,", str_eq(enable, "true"));
+    }
+
+    // Remove trailing comma
+    update[strlen(update) - 1] = '\0';
+
+    return update;
+}
+
+char *expandtext_config(const char *ident, ETxIdentifier by, Request *request) {
+    char *query_condition;
+    if (by == ETx_BY_MATCH) {
+        str_format(query_condition, "idx = %d\n", expandtext_index(ident));
+    } else if (by == ETx_BY_ID) {
+        str_format(query_condition, "id = %s\n", ident);
+    }
+
+    char *error = NULL;
+    char *update_section = __prepare_update_config(request, &error);
+    if (error != NULL) {
+        free(query_condition);
+        return error;
+    }
+
+    char *update_query;
+    str_format(update_query, "UPDATE expandtexts SET %s WHERE %s", update_section, query_condition);
+
+    if (sqlite3_exec(data.db, update_query, 0, 0, &data.db_error)) {
+        error = strdup(data.db_error);
+        sqlite3_free(data.db_error);
+    }
+    
+    free(update_query);
+    free(query_condition);
+    free(update_section);
+
+    return error;
 }

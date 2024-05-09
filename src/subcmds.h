@@ -10,4 +10,5 @@ int subcmd_close_server(Args *args);
 int subcmd_add_match(Args *args);
 int subcmd_remove_match(Args *args);
 
-int subcmd_list_words(Args *args);
+int subcmd_list_exptexts(Args *args);
+int subcmd_config_match(Args *args);

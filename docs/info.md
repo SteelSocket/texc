@@ -9,8 +9,13 @@ The command line interface is documented in the `-h, --help` flags. CLI uses the
 3. [/remove](./api/remove.md)
 4. [/list](./api/list.md)
 5. [/close](./api/close.md)
+6. [/config](./api/config.md)
 
 # Text Expansion System
+
+## Enable
+
+A text-expansion is only active if the enable attribute is set to true. Can be set using `config` sub command.
 
 ## Undo
 

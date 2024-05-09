@@ -23,7 +23,13 @@ ArgParser *__args_server() {
 //                      Add Command
 // ---------------------------------------------------------
 
-Option __add_opts[] = {};
+Option __add_opts[] = {{
+    .flags = "-e,--enable",
+    .help = "Set enable or disable",
+    .has_value = true,
+    .default_value = "true",
+    .is_required = false,
+}};
 
 Positional __add_pos[] = {
     {
@@ -66,7 +72,7 @@ ArgParser *__args_remove() {
 }
 
 // ---------------------------------------------------------
-//        Remove Command
+//                      Close Command
 // ---------------------------------------------------------
 
 ArgParser *__args_close() {
@@ -81,6 +87,36 @@ ArgParser *__args_close() {
 ArgParser *__args_list() {
     return argparse_init("list", "Prints all the text-expansions saved", NULL,
                          0, NULL, 0);
+}
+
+// ---------------------------------------------------------
+//                      Config Command
+// ---------------------------------------------------------
+
+Option __config_opts[] = {
+    {
+        .flags = "-i,--id",
+        .help = "sets config based on id",
+        .has_value = false,
+        .is_required = false,
+    },
+    {
+        .flags = "-e,--enable",
+        .help = "Enables/Disables the text-expansion",
+        .has_value = true,
+        .is_required = false,
+    },
+};
+
+Positional __config_pos[] = {{
+    .name = "identifier",
+    .required = true,
+}};
+
+ArgParser *__args_config() {
+    return argparse_init("config", "Modifies the config of a text-expansion",
+                         __config_opts, array_len(__config_opts), __config_pos,
+                         array_len(__config_pos));
 }
 
 // ---------------------------------------------------------
@@ -115,6 +151,7 @@ ArgParser *args_init() {
     argparse_add_subparser(texc_parser, __args_add());
     argparse_add_subparser(texc_parser, __args_remove());
     argparse_add_subparser(texc_parser, __args_list());
+    argparse_add_subparser(texc_parser, __args_config());
 
     return texc_parser;
 }

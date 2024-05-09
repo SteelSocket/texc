@@ -5,6 +5,24 @@
 #include "../texc_utils/array.h"
 #include "../texc_utils/logger.h"
 
+void __row_bind_column(sqlite3_stmt *stmt, DataSqlRow row) {
+    sqlite3_bind_int(stmt, 1, row.index);
+    sqlite3_bind_int(stmt, 2, row.id);
+    sqlite3_bind_int(stmt, 3, row.enabled);
+}
+
+DataSqlRow __row_get_column(sqlite3_stmt *stmt) {
+    int idx = sqlite3_column_int(stmt, 0);
+    int id = sqlite3_column_int(stmt, 1);
+    int enabled = sqlite3_column_int(stmt, 2);
+
+    return (DataSqlRow){
+        .index = idx,
+        .id = id,
+        .enabled = enabled,
+    };
+}
+
 bool data_sql_init() {
     if (sqlite3_open(":memory:", &data.db)) {
         LOGGER_ERROR(sqlite3_errmsg(data.db));
@@ -14,7 +32,8 @@ bool data_sql_init() {
     const char *exptext_table =
         "CREATE TABLE expandtexts ("
         "idx INTEGER NOT NULL UNIQUE,"
-        "id INTEGER NOT NULL UNIQUE"
+        "id INTEGER NOT NULL UNIQUE,"
+        "enabled INTEGER NOT NULL CHECK (enabled IN (0, 1))"
         ")";
 
     if (sqlite3_exec(data.db, exptext_table, 0, 0, &data.db_error)) {
@@ -57,7 +76,7 @@ int data_sql_missing_int(const char *column) {
 
 void data_sql_add(DataSqlRow row) {
     sqlite3_stmt *stmt;
-    const char *insert_sql = "INSERT INTO expandtexts (idx, id) VALUES (?, ?)";
+    const char *insert_sql = "INSERT INTO expandtexts VALUES (?, ?, ?)";
 
     int rc = sqlite3_prepare_v2(data.db, insert_sql, -1, &stmt, NULL);
     if (rc != SQLITE_OK) {
@@ -65,8 +84,7 @@ void data_sql_add(DataSqlRow row) {
         return;
     }
 
-    sqlite3_bind_int(stmt, 1, row.index);
-    sqlite3_bind_int(stmt, 2, row.id);
+    __row_bind_column(stmt, row);
 
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
@@ -101,10 +119,7 @@ DataSqlRow *data_sql_get(const char *condition, int *size) {
     *size = 0;
 
     while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
-        int idx = sqlite3_column_int(stmt, 0);
-        int id = sqlite3_column_int(stmt, 1);
-
-        DataSqlRow row = (DataSqlRow){.index = idx, .id = id};
+        DataSqlRow row = __row_get_column(stmt);
         array_resize_add(rows, *size, row, DataSqlRow);
     }
 

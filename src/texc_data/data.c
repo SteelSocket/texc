@@ -43,7 +43,7 @@ bool data_init() {
 #ifdef NDEBUG
     char *log_file = path_join(data_dir, "logs.txt");
     logger_set_logfile(log_file);
-    logger_set_level(LOGGER_LEVEL_ERROR);
+    logger_set_level(LOGGER_LEVEL_WARNING);
     free(log_file);
 #endif
 

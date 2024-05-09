@@ -3,10 +3,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-typedef struct {
-    size_t index;
-    size_t id;
-} DataSqlRow;
+#include "data_sql_row.h"
 
 bool data_sql_init();
 

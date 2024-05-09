@@ -60,17 +60,18 @@ void keyhook_expand_matched() {
 }
 
 bool keyhook_check_for_match(KeyEvent event) {
-    // TODO find the required expandtexts using sql rather than
-    // iterating over the array
-    int iter_count = 0;
-    int i = 0;
-    while (iter_count < data.exptext_len) {
-        if (data.exptexts[i] == NULL) {
-            i++;
-            continue;
-        }
+    int count;
+    DataSqlRow *rows = data_sql_get("enabled = 1", &count);
 
-        ExpandText *exptext = data.exptexts[i];
+    if (rows == NULL)
+        return false;
+    if (count == 0) {
+        free(rows);
+        return false;
+    }
+
+    for (int i = 0; i < count; i++) {
+        ExpandText *exptext = data.exptexts[rows[i].index];
 
         Tag *match = exptext->match;
         Tag *expand = exptext->expand;
@@ -80,13 +81,12 @@ bool keyhook_check_for_match(KeyEvent event) {
             keyhook_try_expand = true;
             keyhook_match_settings = match_settings;
             keyhook_expand_tag = expand;
+            free(rows);
             return true;
         }
-
-        iter_count++;
-        i++;
     }
 
+    free(rows);
     return false;
 }
 

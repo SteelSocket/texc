@@ -10,5 +10,5 @@ Used to remove a text-expansion from texc
 | parameter |    type    |         description             | incompatible |
 |:---------:|:----------:|:-------------------------------:|:------------:|
 |   match   | tag string |    The match text to remove by  |      id      |
-|    id     |    int     |     The id to remove by         |     word     | 
+|    id     |    int     |     The id to remove by         |     match     | 
 

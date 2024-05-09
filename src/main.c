@@ -35,7 +35,9 @@ int main(int argc, char *argv[]) {
     } else if (str_eq(cmd_name, "close")) {
         exit_code = subcmd_close_server(args);
     } else if (str_eq(cmd_name, "list")) {
-        exit_code = subcmd_list_words(args);
+        exit_code = subcmd_list_exptexts(args);
+    } else if (str_eq(cmd_name, "config")) {
+        exit_code = subcmd_config_match(args);
     }
     socket_cleanup();
 

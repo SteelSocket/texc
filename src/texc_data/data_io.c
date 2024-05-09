@@ -1,6 +1,7 @@
 #include "data_io.h"
 #include "data.h"
 #include "data_sql.h"
+#include "data_sql_row.h"
 
 #include "../texc_utils/csv.h"
 #include "../texc_utils/logger.h"
@@ -20,7 +21,7 @@ char *__expandtext_as_csv(ExpandText *exptext, DataSqlRow row) {
     char *csv_expand = csv_to_field(exptext->expand->tag_source);
 
     char *ret;
-    str_format(ret, "%s,%s,%zd\n", csv_match, csv_expand, row.id);
+    str_format(ret, "%s,%s,%zd,%d\n", csv_match, csv_expand, row.id, row.enabled);
 
     free(csv_match);
     free(csv_expand);
@@ -34,7 +35,7 @@ char *data_io_expandtexts_as_csv(const char *select_condition) {
         return NULL;
 
     char *csv_string;
-    str_mcpy(csv_string, "match,expand,id\n");
+    str_mcpy(csv_string, "match,expand,id,enabled\n");
 
     for (int i = 0; i < count; i++) {
         DataSqlRow row = rows[i];
@@ -80,9 +81,8 @@ void data_io_load() {
     while ((line = strtok_r(NULL, "\n", &save_ptr))) {
         char *match_src = csv_next_field((const char **)&line);
         char *expand_src = csv_next_field((const char **)&line);
-        char *id_src = csv_next_field((const char **)&line);
 
-        DataSqlRow attrs = (DataSqlRow){.id = atoi(id_src)};
+        DataSqlRow attrs = data_sql_row_from_csv((const char **)&line);
         char *error = expandtext_add_from_src(match_src, expand_src, attrs);
 
         if (error != NULL) {
@@ -92,7 +92,6 @@ void data_io_load() {
 
         free(match_src);
         free(expand_src);
-        free(id_src);
     }
 
     LOGGER_INFO("expandtexts loaded from file successfully");

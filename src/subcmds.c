@@ -6,6 +6,7 @@
 #include "texc_http/client.h"
 #include "texc_http/server.h"
 
+#include "texc_utils/argparse.h"
 #include "texc_utils/logger.h"
 #include "texc_utils/str.h"
 
@@ -142,10 +143,12 @@ int subcmd_add_match(Args *args) {
     __check_server_running(port);
 
     char *word = url_encode(argparse_positional_get(args, "text"));
-    char *replace = url_encode(argparse_positional_get(args, "expand"));
+    char *expand = url_encode(argparse_positional_get(args, "expand"));
+    char *enabled = url_encode(argparse_flag_get(args, "--enable"));
 
     char *url;
-    str_format(url, "/add?match=%s&expand=%s", word, replace);
+    str_format(url, "/add?match=%s&expand=%s&enabled=%s", word, expand,
+               enabled);
 
     printf("Adding %s -> %s\n", argparse_positional_get(args, "text"),
            argparse_positional_get(args, "expand"));
@@ -154,15 +157,17 @@ int subcmd_add_match(Args *args) {
     if (body == NULL) {
         free(url);
         free(word);
-        free(replace);
+        free(expand);
         return 1;
     }
     printf("%s\n", body);
     free(body);
 
     free(url);
+
     free(word);
-    free(replace);
+    free(expand);
+    free(enabled);
 
     return 0;
 }
@@ -171,36 +176,35 @@ int subcmd_remove_match(Args *args) {
     int port;
     __check_server_running(port);
 
-    char *identifier = url_encode(argparse_positional_get(args, "identifier"));
     char *url;
-
     str_mcpy(url, "/remove?");
+
+    char *identifier = url_encode(argparse_positional_get(args, "identifier"));
     bool is_valid_iden =
-        __append_identifier(args, &url, identifier, "Removing word");
+        __append_identifier(args, &url, identifier, "Removing text-expansions");
+    free(identifier);
+
     if (!is_valid_iden) {
         // Currently this case will not occur
         printf("Invalid Identifier\n");
-        free(identifier);
         free(url);
         return 1;
     }
 
     char *body = __execute_request(port, url);
     if (body == NULL) {
-        free(identifier);
         free(url);
         return 1;
     }
     printf("%s\n", body);
 
-    free(identifier);
     free(body);
     free(url);
 
     return 0;
 }
 
-int subcmd_list_words(Args *args) {
+int subcmd_list_exptexts(Args *args) {
     int port;
     __check_server_running(port);
 
@@ -216,5 +220,40 @@ int subcmd_list_words(Args *args) {
 
     printf("%s\n", body);
     free(body);
+    return 0;
+}
+
+int subcmd_config_match(Args *args) {
+    int port;
+    __check_server_running(port);
+
+    char *url;
+    str_mcpy(url, "/config?");
+
+    char *identifier = url_encode(argparse_positional_get(args, "identifier"));
+    bool is_valid_iden =
+        __append_identifier(args, &url, identifier, "Configuring text-expansions");
+    free(identifier);
+
+    if (!is_valid_iden) {
+        // Currently this case will not occur
+        printf("Invalid Identifier\n");
+        free(url);
+        return 1;
+    }
+
+    if (argparse_flag_found(args, "--enable")) {
+        str_rformat(url, "&enabled=%s", argparse_flag_get(args, "--enable"));
+    }
+
+    char *body = __execute_request(port, url);
+    if (body == NULL) {
+        free(url);
+        return 1;
+    }
+    printf("%s\n", body);
+    free(body);
+    free(url);
+
     return 0;
 }

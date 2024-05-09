@@ -1,6 +1,7 @@
 add_library(texc_data
     data.c
     data_sql.c
+    data_sql_row.c
     data_io.c
 )
 
