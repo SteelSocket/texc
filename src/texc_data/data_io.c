@@ -21,7 +21,8 @@ char *__expandtext_as_csv(ExpandText *exptext, DataSqlRow row) {
     char *csv_expand = csv_to_field(exptext->expand->tag_source);
 
     char *ret;
-    str_format(ret, "%s,%s,%zd,%d\n", csv_match, csv_expand, row.id, row.enabled);
+    str_format(ret, "%s,%s,%zd,%d\n", csv_match, csv_expand, row.id,
+               row.enabled);
 
     free(csv_match);
     free(csv_expand);

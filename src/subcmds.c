@@ -9,6 +9,7 @@
 #include "texc_utils/argparse.h"
 #include "texc_utils/logger.h"
 #include "texc_utils/str.h"
+#include "texc_utils/url.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -57,23 +58,23 @@ void __run_in_background() {
 #endif
 }
 
-bool __append_identifier(Args *args, char **url, const char *word,
+bool __append_identifier(Args *args, char **url, const char *identifier,
                          const char *print_info) {
-    char *dword = url_decode(word);
+    char *encoded = url_encode(identifier);
 
     if (argparse_flag_found(args, "--id")) {
-        str_rformat(*url, "id=%s", word);
-        printf("%s by id: \"%s\"\n", print_info, dword);
-        free(dword);
+        str_rformat(*url, "id=%s", encoded);
+        printf("%s by id: \"%s\"\n", print_info, identifier);
+        free(encoded);
         return true;
     } else {
-        str_rformat(*url, "match=%s", word);
-        printf("%s by source: \"%s\"\n", print_info, dword);
-        free(dword);
+        str_rformat(*url, "match=%s", encoded);
+        printf("%s by source: \"%s\"\n", print_info, identifier);
+        free(encoded);
         return true;
     }
 
-    free(dword);
+    free(encoded);
     return false;
 }
 
@@ -142,12 +143,12 @@ int subcmd_add_match(Args *args) {
     int port;
     __check_server_running(port);
 
-    char *word = url_encode(argparse_positional_get(args, "text"));
+    char *text_match = url_encode(argparse_positional_get(args, "text"));
     char *expand = url_encode(argparse_positional_get(args, "expand"));
     char *enabled = url_encode(argparse_flag_get(args, "--enable"));
 
     char *url;
-    str_format(url, "/add?match=%s&expand=%s&enabled=%s", word, expand,
+    str_format(url, "/add?match=%s&expand=%s&enabled=%s", text_match, expand,
                enabled);
 
     printf("Adding %s -> %s\n", argparse_positional_get(args, "text"),
@@ -156,7 +157,7 @@ int subcmd_add_match(Args *args) {
     char *body = __execute_request(port, url);
     if (body == NULL) {
         free(url);
-        free(word);
+        free(text_match);
         free(expand);
         return 1;
     }
@@ -165,7 +166,7 @@ int subcmd_add_match(Args *args) {
 
     free(url);
 
-    free(word);
+    free(text_match);
     free(expand);
     free(enabled);
 
@@ -179,10 +180,9 @@ int subcmd_remove_match(Args *args) {
     char *url;
     str_mcpy(url, "/remove?");
 
-    char *identifier = url_encode(argparse_positional_get(args, "identifier"));
+    const char *identifier = argparse_positional_get(args, "identifier");
     bool is_valid_iden =
         __append_identifier(args, &url, identifier, "Removing text-expansions");
-    free(identifier);
 
     if (!is_valid_iden) {
         // Currently this case will not occur
@@ -230,10 +230,9 @@ int subcmd_config_match(Args *args) {
     char *url;
     str_mcpy(url, "/config?");
 
-    char *identifier = url_encode(argparse_positional_get(args, "identifier"));
-    bool is_valid_iden =
-        __append_identifier(args, &url, identifier, "Configuring text-expansions");
-    free(identifier);
+    const char *identifier = argparse_positional_get(args, "identifier");
+    bool is_valid_iden = __append_identifier(args, &url, identifier,
+                                             "Configuring text-expansions");
 
     if (!is_valid_iden) {
         // Currently this case will not occur

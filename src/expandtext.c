@@ -108,27 +108,22 @@ void __expandtext_add(ExpandText *exptext, DataSqlRow row) {
 
 char *expandtext_add_from_request(const char *match, const char *expand,
                                   Request *request) {
-    mutex_lock(data.mutex);
-
     char *error;
     ExpandText *exptext = __expandtext_new(match, expand, &error);
 
     if (error != NULL) {
-        mutex_unlock(data.mutex);
         return error;
     }
 
     DataSqlRow row = data_sql_row_from_request(request, &error);
     if (error != NULL) {
         expandtext_free(exptext);
-        mutex_unlock(data.mutex);
         return error;
     }
 
     __expandtext_add(exptext, row);
 
     data_io_save();
-    mutex_unlock(data.mutex);
 
     return NULL;
 }
@@ -140,23 +135,17 @@ char *expandtext_add_from_src(const char *match, const char *expand,
     if (error != NULL) {
         return error;
     }
-    mutex_lock(data.mutex);
-
     __expandtext_add(exptext, attrs);
-
-    mutex_unlock(data.mutex);
 
     return NULL;
 }
 
 char *__delete_by_match(const char *match) {
-    mutex_lock(data.mutex);
     int index = expandtext_index(match);
 
     if (index == -1) {
         char *err;
-        str_format(err, "given match word '%s' does not exists", match);
-        mutex_unlock(data.mutex);
+        str_format(err, "given match '%s' does not exists", match);
         return err;
     }
 
@@ -166,7 +155,6 @@ char *__delete_by_match(const char *match) {
     free(condition);
 
     data_io_save();
-    mutex_unlock(data.mutex);
     if (!deleted) {
         return strdup("texc INTERNAL SQL ERROR see logs.txt");
     }
@@ -180,8 +168,6 @@ char *__delete_by_id(size_t id) {
     char *condition;
     str_format(condition, "id = %zd", id);
 
-    mutex_lock(data.mutex);
-
     DataSqlRow *rows = data_sql_get(condition, &count);
     free(condition);
 
@@ -189,7 +175,6 @@ char *__delete_by_id(size_t id) {
         char *err;
         str_format(err, "expandtext with id '%zd' is not found", id);
         free(rows);
-        mutex_unlock(data.mutex);
         return err;
     }
 
@@ -205,8 +190,6 @@ char *__delete_by_id(size_t id) {
     free(rows);
 
     data_io_save();
-    mutex_unlock(data.mutex);
-
     if (!deleted) {
         return strdup("texc INTERNAL SQL ERROR see logs.txt");
     }
@@ -263,13 +246,15 @@ char *expandtext_config(const char *ident, ETxIdentifier by, Request *request) {
     }
 
     char *update_query;
-    str_format(update_query, "UPDATE expandtexts SET %s WHERE %s", update_section, query_condition);
+    str_format(update_query, "UPDATE expandtexts SET %s WHERE %s",
+               update_section, query_condition);
 
     if (sqlite3_exec(data.db, update_query, 0, 0, &data.db_error)) {
         error = strdup(data.db_error);
         sqlite3_free(data.db_error);
     }
-    
+
+    data_io_save();
     free(update_query);
     free(query_condition);
     free(update_section);

@@ -1,13 +1,13 @@
 #pragma once
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "../texc_utils/http_request.h"
 
 typedef struct {
     size_t index;
-    
+
     size_t id;
     bool enabled;
 } DataSqlRow;

@@ -55,16 +55,23 @@ char *__get_identifier_param(Request *request, const char **identifier,
 }
 
 Response *__handle_add(Request *request) {
-    const char *match;
-    __QUERY_REQUIRED_GET(request, match, "match", "string");
+    mutex_lock(data.mutex);
 
-    if (expandtext_index(match) != -1)
-        return __RESPONSE_ERR("match with the given word already exists");
+    const char *match;
+    __QUERY_REQUIRED_GET(request, match, "match", "tag string");
+
+    if (expandtext_index(match) != -1) {
+        mutex_unlock(data.mutex);
+        return __RESPONSE_ERR(
+            "match with the given text-expansion already exists");
+    }
 
     const char *expand;
-    __QUERY_REQUIRED_GET(request, expand, "expand", "string");
+    __QUERY_REQUIRED_GET(request, expand, "expand", "tag string");
 
     char *error = expandtext_add_from_request(match, expand, request);
+    mutex_unlock(data.mutex);
+
     if (error != NULL) {
         Response *response = __RESPONSE_ERR(error);
         LOGGER_WARNING(error);
@@ -83,7 +90,9 @@ Response *__handle_remove(Request *request) {
     char *error = __get_identifier_param(request, &identifier, &itype);
 
     if (error == NULL) {
+        mutex_lock(data.mutex);
         error = expandtext_delete(identifier, itype);
+        mutex_unlock(data.mutex);
     }
 
     if (error != NULL) {
