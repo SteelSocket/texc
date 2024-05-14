@@ -31,6 +31,9 @@ Tag *keyhook_expand_tag = NULL;
 void keyhook_expand_matched() {
     while (keybuffer_cursor_move(-1)) {
         keyboard_press_release(KEYBOARD_RIGHT_ARROW);
+#ifdef _WIN32
+        Sleep(KEYBOARD_RKEYPRESS_TIMEOUT);
+#endif
     }
 
     keyhook_is_expanding = true;

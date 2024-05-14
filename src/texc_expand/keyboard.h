@@ -21,6 +21,8 @@
 
 #include "../texc_tags/tags.h"
 
+#define KEYBOARD_RKEYPRESS_TIMEOUT 120
+
 bool keyboard_is_pressed(int keycode);
 
 void keyboard_press(int keycode);
