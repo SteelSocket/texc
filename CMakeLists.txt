@@ -16,12 +16,15 @@ add_executable(texc
     src/main.c
 
     src/expandtext.c
+    src/settings.c
+
     src/args.c
     src/subcmds.c
 )
 
 target_link_libraries(texc
     sqlite3
+    inih
 
     texc_utils
     texc_data

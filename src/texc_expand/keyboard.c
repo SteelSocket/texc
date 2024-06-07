@@ -1,6 +1,7 @@
 #include "keyboard.h"
-
 #include "_keyboard_raw.h"
+
+#include "../texc_data/data.h"
 
 bool keyboard_is_pressed(int keycode) {
 #ifdef _WIN32
@@ -39,7 +40,7 @@ void keyboard_nomod_type_string(const char *str) {
         // when we type the same characters twice in a sequence
         // as they do not seem to register such rapid presses
         if (*(s - 1) == *s)
-            Sleep(KEYBOARD_RKEYPRESS_TIMEOUT);
+            Sleep(data.settings.rkey_delay);
 #endif
     }
 }

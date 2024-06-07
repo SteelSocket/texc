@@ -1,0 +1,6 @@
+add_library(inih
+    ini.c
+)
+
+list(APPEND EXTERNAL_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/external/inih/")
+set(EXTERNAL_INCLUDE_DIRS "${EXTERNAL_INCLUDE_DIRS}" CACHE INTERNAL "")

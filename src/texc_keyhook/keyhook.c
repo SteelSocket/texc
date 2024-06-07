@@ -32,7 +32,7 @@ void keyhook_expand_matched() {
     while (keybuffer_cursor_move(-1)) {
         keyboard_press_release(KEYBOARD_RIGHT_ARROW);
 #ifdef _WIN32
-        Sleep(KEYBOARD_RKEYPRESS_TIMEOUT);
+        Sleep(data.settings.rkey_delay);
 #endif
     }
 

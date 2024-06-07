@@ -6,9 +6,13 @@
 #include "sqlite3.h"
 
 #include "../expandtext.h"
+#include "../settings.h"
 #include "../texc_utils/thread.h"
 
 typedef struct {
+    // No need to lock mutex for settings as we don't write any value to it
+    Settings settings;
+
     Mutex *mutex;
 
     ExpandText **exptexts;

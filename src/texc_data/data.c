@@ -47,6 +47,16 @@ bool data_init() {
     free(log_file);
 #endif
 
+    char *settings_file = path_join(data_dir, "settings.ini");
+    if (!path_is_file(settings_file)) {
+        data.settings = settings_init(settings_file);
+        LOGGER_INFO("Created settings.ini file");
+    } else {
+        data.settings = settings_load(settings_file);
+        LOGGER_INFO("Loaded settings.ini file");
+    }
+
+    free(settings_file);
     free(data_dir);
 
     data.mutex = mutex_create();

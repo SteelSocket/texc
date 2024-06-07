@@ -19,9 +19,7 @@
 #error "Not implemented"
 #endif
 
-#include "../texc_tags/tags.h"
-
-#define KEYBOARD_RKEYPRESS_TIMEOUT 120
+#include <stdbool.h>
 
 bool keyboard_is_pressed(int keycode);
 
