@@ -63,7 +63,6 @@ void keyhook_expand_matched() {
 bool keyhook_check_for_match(KeyEvent event) {
     int count;
     
-    //TODO impl proper sqlite query creation as ' does not work in current impl
     char *get_query;
     char last_char = keybuffer[keybuffer_size - 1];
 

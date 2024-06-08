@@ -6,11 +6,11 @@ typedef enum {
     LOGGER_LEVEL_INFO,
     LOGGER_LEVEL_WARNING,
     LOGGER_LEVEL_ERROR,
-} LoggerLevel;
+} LogLevel;
 
 void logger_set_logfile(const char *path);
 
-void logger_set_level(LoggerLevel level);
+void logger_set_level(LogLevel level);
 
 #ifndef __FUNCTION_NAME__
 #ifdef _WIN32
@@ -29,7 +29,7 @@ void logger_set_level(LoggerLevel level);
 #endif
 
 void __logger_log(const char *message, const char *file_name, int line_no,
-                  const char *func_name, LoggerLevel level);
+                  const char *func_name, LogLevel level);
 
 #define LOGGER_FORMAT_LOG(LOGGER_MACRO, message, ...) \
     do {                                              \
@@ -55,16 +55,16 @@ void __logger_log(const char *message, const char *file_name, int line_no,
 #include <time.h>
 
 static FILE *__log_file;
-static LoggerLevel __logger_level = LOGGER_LEVEL_INFO;
+static LogLevel __logger_level = LOGGER_LEVEL_INFO;
 
 void logger_set_logfile(const char *path) {
     __log_file = freopen(path, "w", stdout);
 }
 
-void logger_set_level(LoggerLevel level) { __logger_level = level; }
+void logger_set_level(LogLevel level) { __logger_level = level; }
 
 void __logger_log(const char *message, const char *file_name, int line_no,
-                  const char *func_name, LoggerLevel level) {
+                  const char *func_name, LogLevel level) {
     if (__logger_level > level)
         return;
 

@@ -43,16 +43,20 @@ bool data_init() {
 #ifdef NDEBUG
     char *log_file = path_join(data_dir, "logs.txt");
     logger_set_logfile(log_file);
-    logger_set_level(LOGGER_LEVEL_WARNING);
     free(log_file);
 #endif
 
     char *settings_file = path_join(data_dir, "settings.ini");
     if (!path_is_file(settings_file)) {
-        data.settings = settings_init(settings_file);
+        settings_save(settings_file, settings_default);
+        data.settings = settings_default;
+        logger_set_level(data.settings.log_level);
+
         LOGGER_INFO("Created settings.ini file");
     } else {
         data.settings = settings_load(settings_file);
+        logger_set_level(data.settings.log_level);
+
         LOGGER_INFO("Loaded settings.ini file");
     }
 
