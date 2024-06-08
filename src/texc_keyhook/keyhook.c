@@ -29,11 +29,9 @@ MatchSettings keyhook_match_settings = {0};
 Tag *keyhook_expand_tag = NULL;
 
 void keyhook_expand_matched() {
-    while (keybuffer_cursor_move(-1)) {
+    int right_press = keybuffer_cursor;
+    for (int i=0; i < right_press; i++) {
         keyboard_press_release(KEYBOARD_RIGHT_ARROW);
-#ifdef _WIN32
-        Sleep(data.settings.rkey_delay);
-#endif
     }
 
     keyhook_is_expanding = true;
@@ -64,7 +62,18 @@ void keyhook_expand_matched() {
 
 bool keyhook_check_for_match(KeyEvent event) {
     int count;
-    DataSqlRow *rows = data_sql_get("enabled = 1", &count);
+    
+    //TODO impl proper sqlite query creation as ' does not work in current impl
+    char *get_query;
+    char last_char = keybuffer[keybuffer_size - 1];
+
+    if (last_char != '\'')
+        str_format(get_query, "enabled = 1 AND INSTR(__match_init, '%c') > 0", keybuffer[keybuffer_size-1]);
+    else
+        str_mcpy(get_query, "enabled = 1 AND INSTR(__match_init, '''') > 0");
+
+    DataSqlRow *rows = data_sql_get(get_query, &count);
+    free(get_query);
 
     if (rows == NULL)
         return false;
@@ -110,7 +119,7 @@ void keyhook_handle_event(KeyEvent event) {
     }
 
     // Left arrow
-    if (keyboard_is_pressed(KEYBOARD_LEFT_ARROW)) {
+    if (event.keycode == KEYBOARD_LEFT_ARROW && event.is_keydown) {
         if (event.is_ctrldown) {
             keyhook_reset();
             return;
@@ -121,7 +130,7 @@ void keyhook_handle_event(KeyEvent event) {
     }
 
     // Right arrow
-    if (keyboard_is_pressed(KEYBOARD_RIGHT_ARROW)) {
+    if (event.keycode == KEYBOARD_RIGHT_ARROW && event.is_keydown) {
         if (event.is_ctrldown) {
             keyhook_reset();
             return;

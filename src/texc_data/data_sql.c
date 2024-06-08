@@ -5,10 +5,15 @@
 #include "../texc_utils/array.h"
 #include "../texc_utils/logger.h"
 
-void __row_bind_column(sqlite3_stmt *stmt, DataSqlRow row) {
+void __row_bind_column(sqlite3_stmt *stmt, DataSqlRow row, char *minit) {
     sqlite3_bind_int(stmt, 1, row.index);
     sqlite3_bind_int(stmt, 2, row.id);
     sqlite3_bind_int(stmt, 3, row.enabled);
+    
+    if (minit != NULL)
+        sqlite3_bind_text(stmt, 4, minit, -1, SQLITE_STATIC);
+    else
+        sqlite3_bind_null(stmt, 4);
 }
 
 DataSqlRow __row_get_column(sqlite3_stmt *stmt) {
@@ -33,7 +38,8 @@ bool data_sql_init() {
         "CREATE TABLE expandtexts ("
         "idx INTEGER NOT NULL UNIQUE,"
         "id INTEGER NOT NULL UNIQUE,"
-        "enabled INTEGER NOT NULL CHECK (enabled IN (0, 1))"
+        "enabled INTEGER NOT NULL CHECK (enabled IN (0, 1)),"
+        "__match_init TEXT"
         ")";
 
     if (sqlite3_exec(data.db, exptext_table, 0, 0, &data.db_error)) {
@@ -74,9 +80,9 @@ int data_sql_missing_int(const char *column) {
     return required;
 }
 
-void data_sql_add(DataSqlRow row) {
+void data_sql_add(DataSqlRow row, char *match_initalizer) {
     sqlite3_stmt *stmt;
-    const char *insert_sql = "INSERT INTO expandtexts VALUES (?, ?, ?)";
+    const char *insert_sql = "INSERT INTO expandtexts VALUES (?, ?, ?, ?)";
 
     int rc = sqlite3_prepare_v2(data.db, insert_sql, -1, &stmt, NULL);
     if (rc != SQLITE_OK) {
@@ -84,7 +90,7 @@ void data_sql_add(DataSqlRow row) {
         return;
     }
 
-    __row_bind_column(stmt, row);
+    __row_bind_column(stmt, row, match_initalizer);
 
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {

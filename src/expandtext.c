@@ -5,6 +5,7 @@
 #include "texc_data/data_sql.h"
 #include "texc_data/data_sql_row.h"
 
+#include "texc_match/match.h"
 #include "texc_tags/tagmap.h"
 #include "texc_tags/tags.h"
 
@@ -103,7 +104,7 @@ void __expandtext_add(ExpandText *exptext, DataSqlRow row) {
     data.exptext_len++;
 
     row.index = index;
-    data_sql_add(row);
+    data_sql_add(row, match_get_initializer(exptext->match));
 }
 
 char *expandtext_add_from_request(const char *match, const char *expand,

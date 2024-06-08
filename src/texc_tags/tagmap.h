@@ -38,7 +38,14 @@ typedef struct {
     // Validates the tag and returns the error (if any)
     // @param 1 the raw tag
     // @return error message (must be freed)
-    char *(*validate)(Tag *);
+    char *(*tag_validate)(Tag *);
+
+    // Returns Character(s) representation of tag
+    // Is used in match tags only
+    // @param 1 TagMap->data
+    // @param 2 MatchSettings
+    // @return the character(s) representation of the tag
+    const char *(*tag_char)(void *, void *);
 
 } TagMap;
 

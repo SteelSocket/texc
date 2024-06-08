@@ -4,6 +4,8 @@
 #include "../texc_tags/tagmap.h"
 #include "../texc_utils/str.h"
 
+#include <ctype.h>
+
 bool __char_eq(char c1, char c2, MatchSettings *settings) {
     if (settings->is_casesensitive)
         return c1 == c2;
@@ -64,4 +66,54 @@ MatchSettings match_text(Tag *match) {
     __match_text(match, &settings);
 
     return settings;
+}
+
+void __match_get_initializer(Tag *tag, MatchSettings *settings, char **buf) {
+    bool is_container = str_eq(tag->name, "match") || str_eq(tag->name, "text");
+    const TagMap map = tagmap_get(tag->name, true);
+
+    if (!is_container) {
+        if (map.tag_char != NULL) {
+            str_mcpy(*buf, map.tag_char(map.data, (void *)settings));
+            return;
+        }
+
+        map.tag_enter(map.data, (void *)settings);
+    }
+
+    if (tag->text != NULL) {
+        int i = strlen(tag->text) - 1;
+        char c = tag->text[i];
+
+        if (settings->is_casesensitive || !isalpha(c)) {
+            str_format(*buf, "%c", c);
+            return;
+        } else {
+            str_format(*buf, "%c%c", toupper(c), tolower(c));
+            return;
+        }
+    } else {
+        int i = tag->tags_len - 1;
+        return __match_get_initializer(tag->tags[i], settings, buf);
+    }
+
+    if (!is_container && map.tag_exit != NULL) {
+        map.tag_exit(map.data, (void *)settings);
+        if (!settings->ok) {
+            return;
+        }
+    }
+}
+
+char *match_get_initializer(Tag *match) {
+    MatchSettings settings = (MatchSettings){
+        .ok = true,
+        .cursor = keybuffer_size,
+        .is_undoable = true,
+        .is_casesensitive = true,
+    };
+    char *buffer;
+    __match_get_initializer(match, &settings, &buffer);
+
+    return buffer;
 }

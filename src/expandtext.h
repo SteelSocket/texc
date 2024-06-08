@@ -8,7 +8,7 @@
 #include "texc_tags/tags.h"
 #include "texc_utils/http_request.h"
 
-typedef struct {
+typedef struct ExpandText {
     Tag *match;
     Tag *expand;
 } ExpandText;

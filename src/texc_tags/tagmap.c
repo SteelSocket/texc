@@ -22,10 +22,11 @@
         .flags = TAGMAP_FLAGS_NONE, .tag_enter = etag_std_press, \
         .tag_exit = etag_std_release,                            \
     }
-#define __STD_MATCH_TAGMAP(tname, char_str)                           \
-    (const TagMap) {                                                  \
-        .tag_name = tname, .data = (void *)char_str,                  \
-        .flags = TAGMAP_FLAGS_STANDALONE, .tag_enter = mtag_key_check \
+#define __STD_MATCH_TAGMAP(tname, char_str)                            \
+    (const TagMap) {                                                   \
+        .tag_name = tname, .data = (void *)char_str,                   \
+        .flags = TAGMAP_FLAGS_STANDALONE, .tag_enter = mtag_key_check, \
+        .tag_char = mtag_key_char,                                     \
     }
 
 // ---------------------------------
@@ -100,8 +101,8 @@ void __handle_tag_name(Tag *tag, bool is_match, char **error_msg) {
         }
     }
 
-    if (current_map.validate != NULL)
-        *error_msg = current_map.validate(tag);
+    if (current_map.tag_validate != NULL)
+        *error_msg = current_map.tag_validate(tag);
 
 #undef __TM_FLAG_ERR
 }

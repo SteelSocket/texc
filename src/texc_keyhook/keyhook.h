@@ -6,6 +6,7 @@
 
 typedef struct {
     char character;
+    int keycode;
 
     bool is_keydown;
     bool is_ctrldown;

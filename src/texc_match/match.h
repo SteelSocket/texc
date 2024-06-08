@@ -15,3 +15,5 @@ typedef struct {
 } MatchSettings;
 
 MatchSettings match_text(Tag *match);
+
+char *match_get_initializer(Tag *match);

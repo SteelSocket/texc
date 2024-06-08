@@ -25,6 +25,12 @@ bool mtag_key_check(void *data, void *settings) {
     return false;
 }
 
+
+const char *mtag_key_char(void *data, void *settings) {
+    MatchSettings *ma_settings = (MatchSettings *)settings;
+    return (char *)data;
+}
+
 bool mtag_tcase_enter(void *data, void *settings) {
     MatchSettings *ma_settings = (MatchSettings *)settings;
     ma_settings->is_casesensitive = !ma_settings->is_casesensitive;

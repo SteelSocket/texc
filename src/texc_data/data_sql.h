@@ -9,7 +9,7 @@ bool data_sql_init();
 
 void data_sql_free();
 
-void data_sql_add(DataSqlRow row);
+void data_sql_add(DataSqlRow row, char *match_initalizer);
 
 DataSqlRow *data_sql_get(const char *condition, int *size);
 
