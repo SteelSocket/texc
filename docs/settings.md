@@ -14,6 +14,14 @@ Settings is loaded at the start of `texc`, For any changes in settings.ini to ta
 - Default: INFO
 - Description: The log level for the logger
 
+## match_settings
+
+### reset_on_enter
+- Type: bool
+- Values: true, false
+- Default: true
+- Description: When true, reset the keybuffer when enter key is pressed while the cursor is not at the end of the word. Cuation: Setting this to be false may result in incorrect matches in applications like the terminal.
+
 ## expand_settings
 
 ### repeat_key_delay

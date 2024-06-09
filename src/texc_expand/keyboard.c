@@ -40,7 +40,7 @@ void keyboard_nomod_type_string(const char *str) {
         // when we type the same characters twice in a sequence
         // as they do not seem to register such rapid presses
         if (*(s - 1) == *s)
-            Sleep(data.settings.rkey_delay);
+            Sleep(data.settings.repeat_delay);
 #endif
     }
 }

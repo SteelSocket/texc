@@ -2,9 +2,17 @@
 
 #include "texc_utils/logger.h"
 
+#include <stdbool.h>
+
 typedef struct {
-    int rkey_delay;
+    // General Settings
     LogLevel log_level;
+    
+    // Match Settings
+    bool reset_on_enter;
+
+    // Expand Settings
+    int repeat_delay;
 
 } Settings;
 

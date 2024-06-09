@@ -121,6 +121,11 @@ void keyhook_raw_handle_keydown(KeyEvent event) {
         mutex_lock(data.mutex);
         bool replaced = keyhook_check_for_match(event);
         mutex_unlock(data.mutex);
+
+        // Resets keybuffer if enter is pressed without the cursor being at the end
+        if (data.settings.reset_on_enter && !replaced && event.keycode == KEYBOARD_RETURN && keybuffer_cursor) {
+            keyhook_reset();
+        }
     }
 
     if (keyhook_last_source && !keyhook_is_expanding) {
