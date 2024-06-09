@@ -6,7 +6,7 @@
 
 #include <stdio.h>
 
-const Settings settings_default = {.rkey_delay = 120};
+const Settings settings_default = {.rkey_delay = 120, .log_level = LOGGER_LEVEL_INFO};
 
 #define IN_GENERAL_SECTION(sec, name, key) \
     str_eq(sec, "general_settings") && str_eq(name, key)
@@ -47,12 +47,9 @@ static int __handle_ini(void* user, const char* section, const char* name,
             return 0;
 
     } else if (IN_GENERAL_SECTION(section, name, "log_level")) {
-        if (str_eq(name, "INFO"))
-            settings->log_level = LOGGER_LEVEL_INFO;
-        else if (str_eq(name, "WARN"))
-            settings->log_level = LOGGER_LEVEL_WARNING;
-        else if (str_eq(name, "ERROR"))
-            settings->log_level = LOGGER_LEVEL_ERROR;
+        int level = __parse_log_level(value);
+        if (level != -1)
+            settings->log_level = (LogLevel) level;
         else
             return 0;
     } else {

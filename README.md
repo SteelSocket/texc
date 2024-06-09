@@ -60,3 +60,4 @@ texc close
 ## Other Info
 
 See [info.md](/docs/info.md) for more info.
+See [settings.md](/docs/settings.md) for app settings.
