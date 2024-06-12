@@ -104,7 +104,10 @@ void __expandtext_add(ExpandText *exptext, DataSqlRow row) {
     data.exptext_len++;
 
     row.index = index;
-    data_sql_add(row, match_get_initializer(exptext->match));
+
+    char *minit = match_get_initializer(exptext->match);
+    data_sql_add(row, minit);
+    free(minit);
 }
 
 char *expandtext_add_from_request(const char *match, const char *expand,
@@ -253,6 +256,24 @@ char *expandtext_config(const char *ident, ETxIdentifier by, Request *request) {
     if (sqlite3_exec(data.db, update_query, 0, 0, &data.db_error)) {
         error = strdup(data.db_error);
         sqlite3_free(data.db_error);
+        return error;
+    }
+
+    if (sqlite3_changes(data.db) <= 0) {
+        if (by == ETx_BY_MATCH) {
+            str_format(error,
+                       "No text-expansion with given match \"%s\" is found",
+                       ident);
+        } else if (by == ETx_BY_ID) {
+            str_format(error, "No text-expansion with given id \"%s\" is found",
+                       ident);
+        } else {
+            str_format(
+                error,
+                "No text-expansion with given identifier \"%s\" is found",
+                ident);
+        }
+        return error;
     }
 
     data_io_save();
