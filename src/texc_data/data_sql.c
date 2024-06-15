@@ -1,31 +1,29 @@
 #include "data_sql.h"
-#include <string.h>
 #include "data.h"
+#include "data_sql_row.h"
+
+#include <string.h>
+
+#include "../texc_match/match.h"
 
 #include "../texc_utils/array.h"
 #include "../texc_utils/logger.h"
 
-void __row_bind_column(sqlite3_stmt *stmt, DataSqlRow row, char *minit) {
-    sqlite3_bind_int(stmt, 1, row.index);
-    sqlite3_bind_int(stmt, 2, row.id);
-    sqlite3_bind_int(stmt, 3, row.enabled);
-    
-    if (minit != NULL)
-        sqlite3_bind_text(stmt, 4, minit, -1, SQLITE_STATIC);
-    else
-        sqlite3_bind_null(stmt, 4);
-}
+void __row_bind_column(sqlite3_stmt *stmt, DataSqlRow *row) {
+    sqlite3_bind_int(stmt, 1, row->index);
 
-DataSqlRow __row_get_column(sqlite3_stmt *stmt) {
-    int idx = sqlite3_column_int(stmt, 0);
-    int id = sqlite3_column_int(stmt, 1);
-    int enabled = sqlite3_column_int(stmt, 2);
+    sqlite3_bind_text(stmt, 2, row->match, -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 3, row->expand, -1, SQLITE_STATIC);
+    sqlite3_bind_int(stmt, 4, row->id);
+    sqlite3_bind_int(stmt, 5, row->enabled);
 
-    return (DataSqlRow){
-        .index = idx,
-        .id = id,
-        .enabled = enabled,
-    };
+    char *minit = match_get_initializer(row->match);
+    if (minit != NULL) {
+        sqlite3_bind_text(stmt, 6, minit, -1, SQLITE_STATIC);
+        free(minit);
+    } else {
+        sqlite3_bind_null(stmt, 6);
+    }
 }
 
 bool data_sql_init() {
@@ -36,9 +34,13 @@ bool data_sql_init() {
 
     const char *exptext_table =
         "CREATE TABLE expandtexts ("
-        "idx INTEGER NOT NULL UNIQUE,"
+        "_index INTEGER NOT NULL UNIQUE,"
+
+        "match TEXT NOT NULL,"
+        "expand TEXT NOT NULL,"
         "id INTEGER NOT NULL UNIQUE,"
         "enabled INTEGER NOT NULL CHECK (enabled IN (0, 1)),"
+
         "__match_init TEXT"
         ")";
 
@@ -80,9 +82,10 @@ int data_sql_missing_int(const char *column) {
     return required;
 }
 
-void data_sql_add(DataSqlRow row, char *match_initalizer) {
+void data_sql_add(DataSqlRow *row) {
     sqlite3_stmt *stmt;
-    const char *insert_sql = "INSERT INTO expandtexts VALUES (?, ?, ?, ?)";
+    const char *insert_sql =
+        "INSERT INTO expandtexts VALUES (?, ?, ?, ?, ?, ?)";
 
     int rc = sqlite3_prepare_v2(data.db, insert_sql, -1, &stmt, NULL);
     if (rc != SQLITE_OK) {
@@ -90,7 +93,7 @@ void data_sql_add(DataSqlRow row, char *match_initalizer) {
         return;
     }
 
-    __row_bind_column(stmt, row, match_initalizer);
+    __row_bind_column(stmt, row);
 
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
@@ -101,10 +104,10 @@ void data_sql_add(DataSqlRow row, char *match_initalizer) {
 
     sqlite3_finalize(stmt);
     LOGGER_FORMAT_LOG(LOGGER_INFO,
-                      "Added record to expandtexts table with id=%zd", row.id);
+                      "Added record to expandtexts table with id=%zd", row->id);
 }
 
-DataSqlRow *data_sql_get(const char *condition, int *size) {
+DataSqlRow **data_sql_get(const char *condition, int *size) {
     sqlite3_stmt *stmt;
     char *select_sql;
 
@@ -121,19 +124,19 @@ DataSqlRow *data_sql_get(const char *condition, int *size) {
         return NULL;
     }
 
-    DataSqlRow *rows = array_create(DataSqlRow);
+    DataSqlRow **rows = array_create(DataSqlRow *);
     *size = 0;
 
     while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
-        DataSqlRow row = __row_get_column(stmt);
-        array_resize_add(rows, *size, row, DataSqlRow);
+        DataSqlRow *row = data_sql_row_from_stmt(stmt);
+        array_resize_add(rows, *size, row, DataSqlRow *);
     }
 
     free(select_sql);
     return rows;
 }
 
-bool data_sql_delete(const char *condition) {
+int data_sql_delete(const char *condition) {
     sqlite3_stmt *stmt;
     char *delete_sql;
 
@@ -148,30 +151,32 @@ bool data_sql_delete(const char *condition) {
 
     if (rc != SQLITE_OK) {
         LOGGER_ERROR(sqlite3_errmsg(data.db));
-        return false;
+        return -1;
     }
 
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
         LOGGER_ERROR(sqlite3_errmsg(data.db));
         sqlite3_finalize(stmt);
-        return false;
+        return -1;
     }
 
+    int delete_count = sqlite3_changes(data.db);
     sqlite3_finalize(stmt);
 
-    return true;
+    return delete_count;
 }
 
 void data_sql_print() {
     printf("--------------------------------------------------\n");
     printf("--------------------------------------------------\n");
     int count;
-    DataSqlRow *rows = data_sql_get(NULL, &count);
+    DataSqlRow **rows = data_sql_get(NULL, &count);
     if (rows != NULL) {
         for (int i = 0; i < count; i++) {
-            DataSqlRow row = rows[i];
-            printf("::%d, %d::\n", row.index, row.id);
+            DataSqlRow *row = rows[i];
+            printf("::%zd, %zd::\n", row->index, row->id);
+            data_sql_row_free(row);
         }
 
         free(rows);

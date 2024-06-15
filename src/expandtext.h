@@ -20,13 +20,7 @@ typedef enum {
 
 void expandtext_free(ExpandText *exptext);
 
-int expandtext_index(const char *match);
-
-char *expandtext_add_from_request(const char *match, const char *expand,
-                                  Request *request);
-
-char *expandtext_add_from_src(const char *match, const char *expand,
-                              DataSqlRow attrs);
+char *expandtext_add(DataSqlRow *row);
 
 char *expandtext_delete(const char *ident, ETxIdentifier by);
 

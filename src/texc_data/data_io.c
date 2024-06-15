@@ -16,22 +16,16 @@ char *__get_save_file() {
     return save_path;
 }
 
-char *__expandtext_as_csv(ExpandText *exptext, DataSqlRow row) {
-    char *csv_match = csv_to_field(exptext->match->tag_source);
-    char *csv_expand = csv_to_field(exptext->expand->tag_source);
-
+char *__expandtext_as_csv(DataSqlRow *row) {
     char *ret;
-    str_format(ret, "%s,%s,%zd,%d\n", csv_match, csv_expand, row.id,
-               row.enabled);
-
-    free(csv_match);
-    free(csv_expand);
+    str_format(ret, "%s,%s,%zd,%d\n", row->match, row->expand, row->id,
+               row->enabled);
     return ret;
 }
 
 char *data_io_expandtexts_as_csv(const char *select_condition) {
     int count;
-    DataSqlRow *rows = data_sql_get(NULL, &count);
+    DataSqlRow **rows = data_sql_get(NULL, &count);
     if (rows == NULL)
         return NULL;
 
@@ -39,12 +33,12 @@ char *data_io_expandtexts_as_csv(const char *select_condition) {
     str_mcpy(csv_string, "match,expand,id,enabled\n");
 
     for (int i = 0; i < count; i++) {
-        DataSqlRow row = rows[i];
-        ExpandText *exptext = data.exptexts[row.index];
-        char *csv_line = __expandtext_as_csv(exptext, row);
+        DataSqlRow *row = rows[i];
+        char *csv_line = __expandtext_as_csv(row);
 
         str_rcat(csv_string, csv_line);
 
+        data_sql_row_free(row);
         free(csv_line);
     }
 
@@ -80,19 +74,14 @@ void data_io_load() {
     // Remove the first line which is the header section
     char *line = strtok_r(contents, "\n", &save_ptr);
     while ((line = strtok_r(NULL, "\n", &save_ptr))) {
-        char *match_src = csv_next_field((const char **)&line);
-        char *expand_src = csv_next_field((const char **)&line);
-
-        DataSqlRow attrs = data_sql_row_from_csv((const char **)&line);
-        char *error = expandtext_add_from_src(match_src, expand_src, attrs);
+        DataSqlRow *row = data_sql_row_from_csv((const char **)&line);
+        char *error = expandtext_add(row);
+        data_sql_row_free(row);
 
         if (error != NULL) {
             LOGGER_WARNING(error);
             free(error);
         }
-
-        free(match_src);
-        free(expand_src);
     }
 
     LOGGER_INFO("expandtexts loaded from file successfully");

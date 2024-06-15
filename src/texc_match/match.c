@@ -105,15 +105,18 @@ void __match_get_initializer(Tag *tag, MatchSettings *settings, char **buf) {
     }
 }
 
-char *match_get_initializer(Tag *match) {
+char *match_get_initializer(const char *match) {
     MatchSettings settings = (MatchSettings){
         .ok = true,
         .cursor = keybuffer_size,
         .is_undoable = true,
         .is_casesensitive = true,
     };
+    Tag *match_tag = tag_parse(match, "match");
+    
     char *buffer;
-    __match_get_initializer(match, &settings, &buffer);
+    __match_get_initializer(match_tag, &settings, &buffer);
 
+    tag_free(match_tag);
     return buffer;
 }

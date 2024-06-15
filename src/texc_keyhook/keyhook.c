@@ -71,7 +71,7 @@ bool keyhook_check_for_match(KeyEvent event) {
     else
         str_mcpy(get_query, "enabled = 1 AND INSTR(__match_init, '''') > 0");
 
-    DataSqlRow *rows = data_sql_get(get_query, &count);
+    DataSqlRow **rows = data_sql_get(get_query, &count);
     free(get_query);
 
     if (rows == NULL)
@@ -82,7 +82,7 @@ bool keyhook_check_for_match(KeyEvent event) {
     }
 
     for (int i = 0; i < count; i++) {
-        ExpandText *exptext = data.exptexts[rows[i].index];
+        ExpandText *exptext = data.exptexts[rows[i]->index];
 
         Tag *match = exptext->match;
         Tag *expand = exptext->expand;
@@ -92,9 +92,14 @@ bool keyhook_check_for_match(KeyEvent event) {
             keyhook_try_expand = true;
             keyhook_match_settings = match_settings;
             keyhook_expand_tag = expand;
+
+            for (int j=i; j < count; j++) {
+                data_sql_row_free(rows[j]);
+            }
             free(rows);
             return true;
         }
+        data_sql_row_free(rows[i]);
     }
 
     free(rows);

@@ -16,4 +16,4 @@ typedef struct {
 
 MatchSettings match_text(Tag *match);
 
-char *match_get_initializer(Tag *match);
+char *match_get_initializer(const char *match);

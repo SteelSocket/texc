@@ -75,25 +75,7 @@ void expandtext_free(ExpandText *exptext) {
     free(exptext);
 }
 
-int expandtext_index(const char *match) {
-    int found_index = -1;
-
-    EXPANDTEXT_ITER(i, {
-        if (str_eq(data.exptexts[i]->match->tag_source, match)) {
-            expandtext_free(data.exptexts[i]);
-            data.exptexts[i] = NULL;
-            data.exptext_len--;
-            found_index = i;
-            break;
-        }
-    });
-
-    return found_index;
-}
-
-void __expandtext_add(ExpandText *exptext, DataSqlRow row) {
-    int index = data_sql_missing_int("idx");
-
+void __expandtext_add(ExpandText *exptext, int index) {
     if (index >= data.exptext_cap) {
         data.exptext_cap = data.exptext_cap * 2;
         data.exptexts =
@@ -102,59 +84,41 @@ void __expandtext_add(ExpandText *exptext, DataSqlRow row) {
 
     data.exptexts[index] = exptext;
     data.exptext_len++;
-
-    row.index = index;
-
-    char *minit = match_get_initializer(exptext->match);
-    data_sql_add(row, minit);
-    free(minit);
 }
 
-char *expandtext_add_from_request(const char *match, const char *expand,
-                                  Request *request) {
+char *expandtext_add(DataSqlRow *row) {
     char *error;
-    ExpandText *exptext = __expandtext_new(match, expand, &error);
-
-    if (error != NULL) {
+    ExpandText *exptext = __expandtext_new(row->match, row->expand, &error);
+    if (error != NULL)
         return error;
-    }
+    __expandtext_add(exptext, row->index);
 
-    DataSqlRow row = data_sql_row_from_request(request, &error);
-    if (error != NULL) {
-        expandtext_free(exptext);
-        return error;
-    }
-
-    __expandtext_add(exptext, row);
-
-    data_io_save();
-
-    return NULL;
-}
-
-char *expandtext_add_from_src(const char *match, const char *expand,
-                              DataSqlRow attrs) {
-    char *error;
-    ExpandText *exptext = __expandtext_new(match, expand, &error);
-    if (error != NULL) {
-        return error;
-    }
-    __expandtext_add(exptext, attrs);
+    data_sql_add(row);
 
     return NULL;
 }
 
 char *__delete_by_match(const char *match) {
-    int index = expandtext_index(match);
+    char *condition;
+    str_format(condition, "match = '%s'", match);
 
-    if (index == -1) {
-        char *err;
-        str_format(err, "given match '%s' does not exists", match);
-        return err;
+    int count;
+    DataSqlRow **rows = data_sql_get(condition, &count);
+    if (rows == NULL) {
+        return NULL;
     }
 
-    char *condition;
-    str_format(condition, "idx = %d", index);
+    for (int i=0; i < count; i++) {
+        DataSqlRow *row = rows[i];
+        ExpandText *exptext = data.exptexts[row->index];
+
+        expandtext_free(exptext);
+        data.exptexts[row->index] = NULL;
+        data.exptext_len--;
+        data_sql_row_free(row);
+    }
+    free(rows);
+
     bool deleted = data_sql_delete(condition);
     free(condition);
 
@@ -172,7 +136,7 @@ char *__delete_by_id(size_t id) {
     char *condition;
     str_format(condition, "id = %zd", id);
 
-    DataSqlRow *rows = data_sql_get(condition, &count);
+    DataSqlRow **rows = data_sql_get(condition, &count);
     free(condition);
 
     if (count == 0) {
@@ -182,7 +146,7 @@ char *__delete_by_id(size_t id) {
         return err;
     }
 
-    int index = rows[0].index;
+    int index = rows[0]->index;
     expandtext_free(data.exptexts[index]);
     data.exptexts[index] = NULL;
     data.exptext_len--;
@@ -191,6 +155,7 @@ char *__delete_by_id(size_t id) {
     bool deleted = data_sql_delete(condition);
 
     free(condition);
+    data_sql_row_free(rows[0]);
     free(rows);
 
     data_io_save();
@@ -237,7 +202,7 @@ char *__prepare_update_config(Request *request, char **error) {
 char *expandtext_config(const char *ident, ETxIdentifier by, Request *request) {
     char *query_condition;
     if (by == ETx_BY_MATCH) {
-        str_format(query_condition, "idx = %d\n", expandtext_index(ident));
+        str_format(query_condition, "match = '%s'\n", ident);
     } else if (by == ETx_BY_ID) {
         str_format(query_condition, "id = %s\n", ident);
     }

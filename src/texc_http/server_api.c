@@ -57,26 +57,20 @@ char *__get_identifier_param(Request *request, const char **identifier,
 Response *__handle_add(Request *request) {
     mutex_lock(data.mutex);
 
-    const char *match;
-    __QUERY_REQUIRED_GET(request, match, "match", "tag string");
-
-    if (expandtext_index(match) != -1) {
-        mutex_unlock(data.mutex);
-        return __RESPONSE_ERR(
-            "match with the given text-expansion already exists");
+    char *error;
+    DataSqlRow *row = data_sql_row_from_request(request, &error);
+    if (error == NULL) {
+        error = expandtext_add(row);
+        if (error == NULL)
+            data_io_save();
     }
-
-    const char *expand;
-    __QUERY_REQUIRED_GET(request, expand, "expand", "tag string");
-
-    char *error = expandtext_add_from_request(match, expand, request);
+    data_sql_row_free(row);
     mutex_unlock(data.mutex);
 
     if (error != NULL) {
         Response *response = __RESPONSE_ERR(error);
         LOGGER_WARNING(error);
         free(error);
-
         return response;
     }
 

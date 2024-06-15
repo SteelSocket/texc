@@ -20,11 +20,6 @@ Tag *tag_clone(Tag *tag) {
     else
         ctag->text = NULL;
 
-    if (tag->tag_source != NULL)
-        ctag->tag_source = strdup(tag->tag_source);
-    else
-        ctag->tag_source = NULL;
-
     ctag->tags_len = tag->tags_len;
     ctag->tags = NULL;
     if (tag->tags_len) {
@@ -35,53 +30,6 @@ Tag *tag_clone(Tag *tag) {
     }
 
     return ctag;
-}
-
-// ---------------------------------------------------------
-
-Tag *tag_get(Tag *tag, char *name) {
-    if (str_eq(tag->name, name)) {
-        return tag;
-    }
-
-    for (size_t i = 0; i < tag->tags_len; i++) {
-        Tag *rtag = tag_get(tag->tags[i], name);
-        if (rtag != NULL)
-            return rtag;
-    }
-    return NULL;
-}
-
-void __tag_get_all(Tag *tag, char *name, int *count, Tag ***array) {
-    if (str_eq(tag->name, name)) {
-        array_resize_add(*array, *count, tag, Tag *);
-    }
-
-    for (size_t i = 0; i < tag->tags_len; i++) {
-        __tag_get_all(tag->tags[i], name, count, array);
-    }
-}
-
-Tag **tag_get_all(Tag *tag, char *name, int *count) {
-    Tag **tag_array = array_create(Tag *);
-    *count = 0;
-
-    __tag_get_all(tag, name, count, &tag_array);
-
-    if (*count == 0) {
-        free(tag_array);
-        return NULL;
-    }
-    return tag_array;
-}
-
-const char *tag_get_text(Tag *tag, char *name) {
-    Tag *ctag = tag_get(tag, name);
-    if (ctag == NULL)
-        return NULL;
-    if (ctag->text == NULL)
-        return NULL;
-    return ctag->text;
 }
 
 // ---------------------------------------------------------
@@ -142,7 +90,6 @@ void __tag_insert_raw(Tag *tag, const char *name, const char *text) {
 
     ctag->name = strdup(name);
     ctag->text = ctext;
-    ctag->tag_source = NULL;
 
     ctag->tags = NULL;
     ctag->tags_len = 0;
@@ -152,7 +99,6 @@ void __tag_insert_raw(Tag *tag, const char *name, const char *text) {
 
 void __tag_insert_text(Tag *tag, const char *text) {
     __tag_insert_raw(tag, "text", text);
-    tag->tags[tag->tags_len - 1]->tag_source = strdup(text);
 }
 
 // ---------------------------------------------------------
@@ -259,7 +205,6 @@ Tag *__tag_parse(size_t max_len, const char *raw_str, const char *tag_name) {
     tag->name = (tag_name == NULL) ? strdup("root") : strdup(tag_name);
     tag->text = NULL;
 
-    tag->tag_source = strdup(copy_str);
     tag->tags = array_create(Tag *);
     tag->tags_len = 0;
 
@@ -278,7 +223,7 @@ Tag *__tag_parse(size_t max_len, const char *raw_str, const char *tag_name) {
         }
         str_strip(tag_name, "\n\t\r");
 
-        if (!*tag_name == '\0' && *tag_name != '/') {
+        if (*tag_name != '\0' && *tag_name != '/') {
             if (save == NULL) {
                 tag_free(tag);
                 return NULL;
@@ -304,7 +249,6 @@ Tag *tag_parse(const char *source, const char *tag_name) {
     if (max_len == 2) {
         Tag *tag = malloc(sizeof(Tag));
 
-        tag->tag_source = strdup(source);
         tag->name = (tag_name == NULL) ? strdup("text") : strdup(tag_name);
         tag->text = __tag_brackets_strip(source);
 
@@ -327,70 +271,6 @@ void __add_indent(char **s, int indent) {
     }
 }
 
-void __tag_format(Tag *tag, char **s, int depth) {
-    bool closing_tag = false;
-    bool same_line_format = (tag->text != NULL)
-                                ? strlen(tag->text) < 30 && tag->tags_len == 0
-                                : false;
-
-    __add_indent(s, depth);
-
-    if (!str_eq(tag->name, "text")) {
-        if (same_line_format) {
-            str_rformat(*s, "<%s>", tag->name);
-        } else {
-            str_rformat(*s, "<%s>\n", tag->name);
-        }
-    }
-
-    if (tag->text != NULL) {
-        // Use the raw text contained in tag->tag_source
-        // Instead of the parsed tag->text
-
-        if (same_line_format) {
-            str_rformat(*s, "%s", tag->tag_source);
-        } else {
-            __add_indent(s, depth + 1);
-            str_rformat(*s, "%s\n", tag->tag_source);
-        }
-
-        closing_tag = true;
-    }
-
-    if (tag->tags_len) {
-        closing_tag = true;
-        for (size_t i = 0; i < tag->tags_len; i++) {
-            __tag_format(tag->tags[i], s, depth + 1);
-        }
-    }
-
-    if (closing_tag) {
-        if (!same_line_format)
-            __add_indent(s, depth);
-        if (!str_eq(tag->name, "text"))
-            str_rformat(*s, "</%s>\n", tag->name);
-        else
-            str_rcat(*s, "\n");
-    }
-}
-
-char *tag_format(Tag *tag, bool format_root) {
-    char *str = malloc(1);
-    str[0] = '\0';
-
-    if (!format_root) {
-        for (size_t i = 0; i < tag->tags_len; i++) {
-            __tag_format(tag->tags[i], &str, 0);
-        }
-    } else {
-        __tag_format(tag, &str, 0);
-    }
-
-    str[strlen(str)] = '\0';
-
-    return str;
-}
-
 // ---------------------------------------------------------
 
 void tag_insert(Tag *tag, Tag *child) {
@@ -400,28 +280,12 @@ void tag_insert(Tag *tag, Tag *child) {
     array_resize_add(tag->tags, tag->tags_len, child, Tag *);
 }
 
-bool tag_insert_text(Tag *tag, const char *text) {
-    if (tag->tags != NULL)
-        return false;
-
-    if (tag->text != NULL) {
-        free(tag->text);
-        free(tag->tag_source);
-    }
-
-    tag->tag_source = strdup(text);
-    tag->text = __tag_brackets_strip(text);
-
-    return true;
-}
-
 Tag *tag_new(const char *name) {
     Tag *tag = malloc(sizeof(Tag));
 
     tag->name = strdup(name);
     tag->text = NULL;
 
-    tag->tag_source = NULL;
     tag->tags = NULL;
     tag->tags_len = 0;
 
@@ -436,9 +300,6 @@ void tag_free(Tag *tag) {
 
     free(tag->name);
 
-    if (tag->tag_source != NULL)
-        free(tag->tag_source);
-
     if (tag->text != NULL)
         free(tag->text);
 
@@ -449,10 +310,4 @@ void tag_free(Tag *tag) {
         free(tag->tags);
     }
     free(tag);
-}
-
-void tag_print(Tag *tag) {
-    char *formatted = tag_format(tag, true);
-    printf("%s\n", formatted);
-    free(formatted);
 }
