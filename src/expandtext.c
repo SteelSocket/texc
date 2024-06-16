@@ -103,7 +103,7 @@ char *__delete_by_match(const char *match) {
     str_format(condition, "match = '%s'", match);
 
     int count;
-    DataSqlRow **rows = data_sql_get(condition, &count);
+    DataSqlRow **rows = data_sql_get_row(condition, &count);
     if (rows == NULL) {
         return NULL;
     }
@@ -136,7 +136,7 @@ char *__delete_by_id(size_t id) {
     char *condition;
     str_format(condition, "id = %zd", id);
 
-    DataSqlRow **rows = data_sql_get(condition, &count);
+    DataSqlRow **rows = data_sql_get_row(condition, &count);
     free(condition);
 
     if (count == 0) {

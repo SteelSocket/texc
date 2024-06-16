@@ -71,7 +71,7 @@ bool keyhook_check_for_match(KeyEvent event) {
     else
         str_mcpy(get_query, "enabled = 1 AND INSTR(__match_init, '''') > 0");
 
-    DataSqlRow **rows = data_sql_get(get_query, &count);
+    DataSqlRow **rows = data_sql_get_row(get_query, &count);
     free(get_query);
 
     if (rows == NULL)

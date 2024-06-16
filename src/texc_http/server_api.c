@@ -101,7 +101,7 @@ Response *__handle_remove(Request *request) {
 
 Response *__handle_list(Request *request) {
     mutex_lock(data.mutex);
-    char *csv_string = data_io_expandtexts_as_csv(NULL);
+    char *csv_string = data_io_expandtexts_as_csv(NULL, NULL);
     mutex_unlock(data.mutex);
 
     if (csv_string == NULL) {

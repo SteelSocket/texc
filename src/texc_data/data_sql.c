@@ -107,7 +107,58 @@ void data_sql_add(DataSqlRow *row) {
                       "Added record to expandtexts table with id=%zd", row->id);
 }
 
-DataSqlRow **data_sql_get(const char *condition, int *size) {
+char ***data_sql_get_raw(const char *columns, const char *condition,
+                         int *row_count, int *col_count) {
+    sqlite3_stmt *stmt;
+    char *select_sql;
+
+    if (columns == NULL)
+        columns = "match, expand, id, enabled";
+
+    if (condition == NULL) {
+        str_format(select_sql, "SELECT %s FROM expandtexts", columns);
+    } else {
+        str_format(select_sql, "SELECT %s FROM expandtexts WHERE %s", columns, condition);
+    }
+
+
+    int rc = sqlite3_prepare_v2(data.db, select_sql, -1, &stmt, NULL);
+    if (rc != SQLITE_OK) {
+        LOGGER_ERROR(sqlite3_errmsg(data.db));
+        free(select_sql);
+        return NULL;
+    }
+
+    char ***raw_rows = array_create(char **);
+
+    *row_count = 0;
+    *col_count = sqlite3_column_count(stmt);
+
+    // Create the header row
+    raw_rows[(*row_count)++] = malloc(sizeof(char *) * *col_count);
+    for (int i = 0; i < *col_count; i++) {
+        raw_rows[0][i] = strdup(sqlite3_column_name(stmt, i));
+    }
+
+    while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+        array_increase_size(raw_rows, *row_count, sizeof(char **));
+
+        int i = (*row_count)++;
+        raw_rows[i] = malloc(sizeof(char *) * *col_count);
+
+        for (int j = 0; j < *col_count; j++) {
+            char *field = strdup(sqlite3_column_text(stmt, j));
+            raw_rows[i][j] = field;
+        }
+    }
+
+    sqlite3_finalize(stmt);
+    free(select_sql);
+    return raw_rows;
+
+}
+
+DataSqlRow **data_sql_get_row(const char *condition, int *size) {
     sqlite3_stmt *stmt;
     char *select_sql;
 
@@ -132,6 +183,7 @@ DataSqlRow **data_sql_get(const char *condition, int *size) {
         array_resize_add(rows, *size, row, DataSqlRow *);
     }
 
+    sqlite3_finalize(stmt);
     free(select_sql);
     return rows;
 }
@@ -171,7 +223,7 @@ void data_sql_print() {
     printf("--------------------------------------------------\n");
     printf("--------------------------------------------------\n");
     int count;
-    DataSqlRow **rows = data_sql_get(NULL, &count);
+    DataSqlRow **rows = data_sql_get_row(NULL, &count);
     if (rows != NULL) {
         for (int i = 0; i < count; i++) {
             DataSqlRow *row = rows[i];

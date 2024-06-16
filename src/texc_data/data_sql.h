@@ -11,7 +11,10 @@ void data_sql_free();
 
 void data_sql_add(DataSqlRow *row);
 
-DataSqlRow **data_sql_get(const char *condition, int *size);
+char ***data_sql_get_raw(const char *columns, const char *condition,
+                         int *row_count, int *col_count);
+
+DataSqlRow **data_sql_get_row(const char *condition, int *size);
 
 int data_sql_missing_int(const char *column);
 

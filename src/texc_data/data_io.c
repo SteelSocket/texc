@@ -23,26 +23,30 @@ char *__expandtext_as_csv(DataSqlRow *row) {
     return ret;
 }
 
-char *data_io_expandtexts_as_csv(const char *select_condition) {
-    int count;
-    DataSqlRow **rows = data_sql_get(NULL, &count);
-    if (rows == NULL)
+char *data_io_expandtexts_as_csv(const char *columns,
+                                 const char *select_condition) {
+    int row_count, col_count;
+    char ***rows =
+        data_sql_get_raw(columns, select_condition, &row_count, &col_count);
+    if (rows == NULL) {
         return NULL;
-
-    char *csv_string;
-    str_mcpy(csv_string, "match,expand,id,enabled\n");
-
-    for (int i = 0; i < count; i++) {
-        DataSqlRow *row = rows[i];
-        char *csv_line = __expandtext_as_csv(row);
-
-        str_rcat(csv_string, csv_line);
-
-        data_sql_row_free(row);
-        free(csv_line);
     }
 
+    char *csv_string = malloc(sizeof(char));
+    csv_string[0] = '\0';
+
+    for (int r = 0; r < row_count; r++) {
+        for (int c = 0; c < col_count; c++) {
+            if (c + 1 != col_count)
+                str_rformat(csv_string, "%s,", rows[r][c]);
+            else
+                str_rformat(csv_string, "%s\n", rows[r][c]);
+            free(rows[r][c]);
+        }
+        free(rows[r]);
+    }
     free(rows);
+
     return csv_string;
 }
 
@@ -51,7 +55,7 @@ void data_io_save() {
     FILE *file = fopen(save_path, "w");
     free(save_path);
 
-    char *csv_string = data_io_expandtexts_as_csv(NULL);
+    char *csv_string = data_io_expandtexts_as_csv(NULL, NULL);
     if (csv_string) {
         fprintf(file, "%s", csv_string);
         free(csv_string);
