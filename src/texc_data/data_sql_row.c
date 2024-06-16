@@ -1,6 +1,7 @@
 #include "data_sql_row.h"
 #include "data_sql.h"
 
+#include "../texc_utils/array.h"
 #include "../texc_utils/csv.h"
 #include "../texc_utils/str.h"
 
@@ -10,7 +11,6 @@ DataSqlRow *data_sql_row_from_request(Request *request, char **error) {
         *error = strdup("match param is not given");
         return NULL;
     }
-
 
     const char *expand = request_get_query(request, "expand");
     if (expand == NULL) {
@@ -38,37 +38,34 @@ DataSqlRow *data_sql_row_from_request(Request *request, char **error) {
     return row;
 }
 
-DataSqlRow *data_sql_row_from_csv(const char **csv_line) {
-    char *match = csv_next_field(csv_line);
-    char *expand = csv_next_field(csv_line);
-    
-    char *id = csv_next_field(csv_line);
-    size_t i_id = data_sql_missing_int("id");
+DataSqlRow *data_sql_row_from_csv(char **csv_row, int *pos_table,
+                                  char **error) {
+    char *match = csv_row[pos_table[ROW_MATCH_IDX]];
+    char *expand = csv_row[pos_table[ROW_EXPAND_IDX]];
+    char *id = csv_row[pos_table[ROW_ID_IDX]];
+    char *enabled = csv_row[pos_table[ROW_ENABLE_IDX]];
 
-    if (id != NULL) {
-        if (str_isnumber(id) && atoi(id) >= 0) {
-            i_id = atoi(id);
-        }
-        free(id);
-    }
-
-    char *enabled = csv_next_field(csv_line);
-    bool b_enabled = true;
-
-    // set enabled to be true for all cases except when enabled is 0
-    if (enabled != NULL) {
-        if (str_eq(enabled, "0")) {
-            b_enabled = false;
-        }
-        free(enabled);
+    // TODO Impl default values for missing fields
+    if (match == NULL) {
+        *error = strdup("\"match\" csv field is NULL");
+        return NULL;
+    } else if (expand == NULL) {
+        *error = strdup("\"expand\" csv field is NULL");
+        return NULL;
+    } else if (id == NULL) {
+        *error = strdup("\"id\" csv field is NULL");
+        return NULL;
+    } else if (enabled == NULL) {
+        *error = strdup("\"enabled\" csv field is NULL");
+        return NULL;
     }
 
     DataSqlRow *row = malloc(sizeof(DataSqlRow));
-    row->match = match;
-    row->expand = expand;
     row->index = data_sql_missing_int("_index");
-    row->id = i_id;
-    row->enabled = b_enabled;
+    row->match = strdup(match);
+    row->expand = strdup(expand);
+    row->id = atoi(id);
+    row->enabled = (bool)atoi(enabled);
 
     return row;
 }

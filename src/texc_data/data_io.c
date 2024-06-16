@@ -61,6 +61,38 @@ void data_io_save() {
     fclose(file);
 }
 
+char *__load_csv_table(CSVTable *table) {
+    char *error;
+
+    int pos_table[4] = {-1, -1, -1, -1};
+    for (int c = 0; c < table->col_count; c++) {
+        char *header = table->fields[0][c];
+
+        if (str_eq(header, "match"))
+            pos_table[ROW_MATCH_IDX] = c;
+        else if (str_eq(header, "expand"))
+            pos_table[ROW_EXPAND_IDX] = c;
+        else if (str_eq(header, "id"))
+            pos_table[ROW_ID_IDX] = c;
+        else if (str_eq(header, "enabled"))
+            pos_table[ROW_ENABLE_IDX] = c;
+    }
+
+    for (int r = 1; r < table->row_count; r++) {
+        char **csv_row = table->fields[r];
+        DataSqlRow *row = data_sql_row_from_csv(csv_row, pos_table, &error);
+
+        if (row == NULL) {
+            return error;
+        }
+
+        expandtext_add(row);
+        data_sql_row_free(row);
+    }
+
+    return NULL;
+}
+
 void data_io_load() {
     char *save_path = __get_save_file();
     char *contents = path_read_all(save_path);
@@ -69,21 +101,20 @@ void data_io_load() {
     if (contents == NULL)
         return;
 
-    char *save_ptr;
+    CSVTable *table = csv_read(contents);
+    free(contents);
 
-    // Remove the first line which is the header section
-    char *line = strtok_r(contents, "\n", &save_ptr);
-    while ((line = strtok_r(NULL, "\n", &save_ptr))) {
-        DataSqlRow *row = data_sql_row_from_csv((const char **)&line);
-        char *error = expandtext_add(row);
-        data_sql_row_free(row);
+    if (table == NULL) {
+        return;
+    }
+    char *error = __load_csv_table(table);
+    csv_free(table);
 
-        if (error != NULL) {
-            LOGGER_WARNING(error);
-            free(error);
-        }
+    if (error != NULL) {
+        LOGGER_ERROR(error);
+        LOGGER_INFO("failed to load expandtexts from file");
+        return;
     }
 
     LOGGER_INFO("expandtexts loaded from file successfully");
-    free(contents);
 }

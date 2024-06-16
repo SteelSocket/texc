@@ -5,8 +5,13 @@
 
 #include "sqlite3.h"
 
+#include "../texc_utils/csv.h"
 #include "../texc_utils/http_request.h"
 
+#define ROW_MATCH_IDX 0
+#define ROW_EXPAND_IDX 1
+#define ROW_ID_IDX 2
+#define ROW_ENABLE_IDX 3
 
 typedef struct {
     size_t index;
@@ -19,7 +24,7 @@ typedef struct {
 
 DataSqlRow *data_sql_row_from_request(Request *request, char **error);
 
-DataSqlRow *data_sql_row_from_csv(const char **csv_line);
+DataSqlRow *data_sql_row_from_csv(char **csv_row, int *pos_table, char **error);
 
 DataSqlRow *data_sql_row_from_stmt(sqlite3_stmt *stmt);
 
