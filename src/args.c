@@ -23,13 +23,22 @@ ArgParser *__args_server() {
 //                      Add Command
 // ---------------------------------------------------------
 
-Option __add_opts[] = {{
-    .flags = "-e,--enable",
-    .help = "Set enable or disable",
-    .has_value = true,
-    .default_value = "true",
-    .is_required = false,
-}};
+Option __add_opts[] = {
+    {
+        .flags = "-e,--enable",
+        .help = "Set enable or disable",
+        .has_value = true,
+        .default_value = "true",
+        .is_required = false,
+    },
+    {
+        .flags = "-g,--group",
+        .help = "Set the text-expansion group",
+        .has_value = true,
+        .default_value = "all",
+        .is_required = false,
+    },
+};
 
 Positional __add_pos[] = {
     {
@@ -57,12 +66,20 @@ Positional __remove_pos[] = {{
     .required = true,
 }};
 
-Option __remove_opts[] = {{
-    .flags = "-i,--id",
-    .help = "Removes the text-expansion by id",
-    .has_value = false,
-    .is_required = false,
-}};
+Option __remove_opts[] = {
+    {
+        .flags = "-i,--id",
+        .help = "Removes the text-expansion by id",
+        .has_value = false,
+        .is_required = false,
+    },
+    {
+        .flags = "-g,--group",
+        .help = "Removes the text-expansion by group",
+        .has_value = false,
+        .is_required = false,
+    },
+};
 
 ArgParser *__args_remove() {
     return argparse_init("remove",
@@ -96,7 +113,13 @@ ArgParser *__args_list() {
 Option __config_opts[] = {
     {
         .flags = "-i,--id",
-        .help = "sets config based on id",
+        .help = "Sets the config by id",
+        .has_value = false,
+        .is_required = false,
+    },
+    {
+        .flags = "-g,--group",
+        .help = "Sets the config by group",
         .has_value = false,
         .is_required = false,
     },

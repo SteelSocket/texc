@@ -25,6 +25,8 @@ bool path_make_tree(const char *path);
 
 char *path_read_all(const char *file_path);
 
+char **path_listdir(const char *path, int *count);
+
 #ifdef UTILS_IMPLEMENTATION
 
 #include "str.h"
@@ -35,6 +37,7 @@ char *path_read_all(const char *file_path);
 #else
 #include <sys/stat.h>
 #include <unistd.h>
+#include <dirent.h>
 #endif
 
 char *path_join(const char *path1, const char *path2) {
@@ -132,6 +135,59 @@ char *path_read_all(const char *file_path) {
     fclose(file);
 
     return buffer;
+}
+
+char **path_listdir(const char *path, int *count) {
+    *count = 0;
+
+#ifdef _WIN32
+    WIN32_FIND_DATA find_data = {0};
+    HANDLE h_find = INVALID_HANDLE_VALUE;
+    char *dir_find;
+    str_format(dir_find, "%s\\*", path);
+
+    h_find = FindFirstFile(dir_find, &find_data);
+    free(dir_find);
+
+    if (h_find == INVALID_HANDLE_VALUE) {
+        return NULL;
+    }
+
+    // Remove '.' and '..'
+    FindNextFile(h_find, &find_data);
+    FindNextFile(h_find, &find_data);
+
+    char **files = array_create(char *);
+
+    do {
+        char *file_name = strdup(find_data.cFileName);
+        array_resize_add(files, *count, file_name, char *);
+    } while (FindNextFile(h_find, &find_data) != 0);
+
+    FindClose(h_find);
+#else
+    struct dirent *entry;
+    DIR *dp = opendir(path);
+
+    if (dp == NULL) {
+        return NULL;
+    }
+
+    // Remove '.' and '..'
+    readdir(dp);
+    readdir(dp);
+
+    char **files = array_create(char *);
+
+    while ((entry = readdir(dp))) {
+        char *file_name = strdup(entry->d_name);
+        array_resize_add(files, *count, file_name, char *);
+    }
+
+    closedir(dp);
+#endif
+
+    return files;
 }
 
 #endif

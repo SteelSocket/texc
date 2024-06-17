@@ -98,9 +98,16 @@ char *expandtext_add(DataSqlRow *row) {
     return NULL;
 }
 
-char *__delete_by_match(const char *match) {
+char *expandtext_delete(const char *ident, ETxIdentifier by) {
     char *condition;
-    str_format(condition, "match = '%s'", match);
+
+    if (by == ETx_BY_MATCH) {
+        str_format(condition, "match = '%s'\n", ident);
+    } else if (by == ETx_BY_ID) {
+        str_format(condition, "id = %s\n", ident);
+    } else if (by == ETx_BY_GROUP) {
+        str_format(condition, "\"group\"= '%s'\n", ident);
+    }
 
     int count;
     DataSqlRow **rows = data_sql_get_row(condition, &count);
@@ -126,55 +133,13 @@ char *__delete_by_match(const char *match) {
     if (!deleted) {
         return strdup("texc INTERNAL SQL ERROR see logs.txt");
     }
-    LOGGER_FORMAT_LOG(LOGGER_INFO, "deleted expandtext with match=%s", match);
 
-    return NULL;
-}
-
-char *__delete_by_id(size_t id) {
-    int count;
-    char *condition;
-    str_format(condition, "id = %zd", id);
-
-    DataSqlRow **rows = data_sql_get_row(condition, &count);
-    free(condition);
-
-    if (count == 0) {
-        char *err;
-        str_format(err, "expandtext with id '%zd' is not found", id);
-        free(rows);
-        return err;
-    }
-
-    int index = rows[0]->index;
-    expandtext_free(data.exptexts[index]);
-    data.exptexts[index] = NULL;
-    data.exptext_len--;
-
-    str_format(condition, "id = %zd", id);
-    bool deleted = data_sql_delete(condition);
-
-    free(condition);
-    data_sql_row_free(rows[0]);
-    free(rows);
-
-    data_io_save();
-    if (!deleted) {
-        return strdup("texc INTERNAL SQL ERROR see logs.txt");
-    }
-
-    LOGGER_FORMAT_LOG(LOGGER_INFO, "deleted expandtext with id=%zd", id);
-    return NULL;
-}
-
-char *expandtext_delete(const char *ident, ETxIdentifier by) {
-    if (by == ETx_BY_MATCH) {
-        return __delete_by_match(ident);
-    }
-
-    if (by == ETx_BY_ID) {
-        return __delete_by_id(atoi(ident));
-    }
+    if (by == ETx_BY_MATCH)
+        LOGGER_FORMAT_LOG(LOGGER_INFO, "deleted expandtext with match=%s", ident);
+    else if (by == ETx_BY_ID)
+        LOGGER_FORMAT_LOG(LOGGER_INFO, "deleted expandtext with id=%s", ident);
+    else if (by == ETx_BY_GROUP)
+        LOGGER_FORMAT_LOG(LOGGER_INFO, "deleted expandtext with group=%s", ident);
 
     return NULL;
 }
@@ -205,6 +170,8 @@ char *expandtext_config(const char *ident, ETxIdentifier by, Request *request) {
         str_format(query_condition, "match = '%s'\n", ident);
     } else if (by == ETx_BY_ID) {
         str_format(query_condition, "id = %s\n", ident);
+    } else if (by == ETx_BY_GROUP) {
+        str_format(query_condition, "\"group\"= '%s'\n", ident);
     }
 
     char *error = NULL;

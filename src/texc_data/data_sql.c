@@ -16,13 +16,14 @@ void __row_bind_column(sqlite3_stmt *stmt, DataSqlRow *row) {
     sqlite3_bind_text(stmt, 3, row->expand, -1, SQLITE_STATIC);
     sqlite3_bind_int(stmt, 4, row->id);
     sqlite3_bind_int(stmt, 5, row->enabled);
+    sqlite3_bind_text(stmt, 6, row->group, -1, SQLITE_STATIC);
 
     char *minit = match_get_initializer(row->match);
     if (minit != NULL) {
-        sqlite3_bind_text(stmt, 6, minit, -1, SQLITE_STATIC);
+        sqlite3_bind_text(stmt, 7, minit, -1, SQLITE_STATIC);
         free(minit);
     } else {
-        sqlite3_bind_null(stmt, 6);
+        sqlite3_bind_null(stmt, 7);
     }
 }
 
@@ -40,6 +41,7 @@ bool data_sql_init() {
         "expand TEXT NOT NULL,"
         "id INTEGER NOT NULL UNIQUE,"
         "enabled INTEGER NOT NULL CHECK (enabled IN (0, 1)),"
+        "\"group\" TEXT NOT NULL,"
 
         "__match_init TEXT"
         ")";
@@ -85,7 +87,7 @@ int data_sql_missing_int(const char *column) {
 void data_sql_add(DataSqlRow *row) {
     sqlite3_stmt *stmt;
     const char *insert_sql =
-        "INSERT INTO expandtexts VALUES (?, ?, ?, ?, ?, ?)";
+        "INSERT INTO expandtexts VALUES (?, ?, ?, ?, ?, ?, ?)";
 
     int rc = sqlite3_prepare_v2(data.db, insert_sql, -1, &stmt, NULL);
     if (rc != SQLITE_OK) {
@@ -113,7 +115,7 @@ char ***data_sql_get_raw(const char *columns, const char *condition,
     char *select_sql;
 
     if (columns == NULL)
-        columns = "match, expand, id, enabled";
+        columns = "match, expand, id, enabled, \"group\"";
 
     if (condition == NULL) {
         str_format(select_sql, "SELECT %s FROM expandtexts", columns);

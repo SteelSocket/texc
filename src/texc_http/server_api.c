@@ -30,8 +30,9 @@ char *__get_identifier_param(Request *request, const char **identifier,
                              ETxIdentifier *itype) {
     const char *match = request_get_query(request, "match");
     const char *id = request_get_query(request, "id");
+    const char *group = request_get_query(request, "group");
 
-    if ((match != NULL) + (id != NULL) > 1) {
+    if ((match != NULL) + (id != NULL) + (group != NULL) > 1) {
         return strdup("Multiple identifiers specified at the same time");
     }
 
@@ -47,6 +48,9 @@ char *__get_identifier_param(Request *request, const char **identifier,
 
         *identifier = id;
         *itype = ETx_BY_ID;
+    } else if (group != NULL) {
+        *identifier = group;
+        *itype = ETx_BY_GROUP;
     } else {
         return strdup("identifier not specified");
     }

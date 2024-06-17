@@ -16,6 +16,7 @@ typedef struct ExpandText {
 typedef enum {
     ETx_BY_MATCH,
     ETx_BY_ID,
+    ETx_BY_GROUP,
 } ETxIdentifier;
 
 void expandtext_free(ExpandText *exptext);

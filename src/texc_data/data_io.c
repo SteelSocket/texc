@@ -9,9 +9,11 @@
 
 #include <stdio.h>
 
-char *__get_save_file() {
+char *__get_save_file(const char *group) {
     char *data_dir = data_get_dir();
-    char *save_path = path_join(data_dir, "matches.csv");
+    char *save_path;
+    str_format(save_path, "%s" PATH_SEPERATOR "matches" PATH_SEPERATOR "%s.csv", data_dir, group);
+
     free(data_dir);
     return save_path;
 }
@@ -50,22 +52,81 @@ char *data_io_expandtexts_as_csv(const char *columns,
     return csv_string;
 }
 
-void data_io_save() {
-    char *save_path = __get_save_file();
+void data_io_save_group(const char *group) {
+    char *save_path = __get_save_file(group);
     FILE *file = fopen(save_path, "w");
     free(save_path);
 
-    char *csv_string = data_io_expandtexts_as_csv(NULL, NULL);
+    char *cond;
+    str_format(cond, "\"group\" = '%s'", group);
+
+    char *csv_string = data_io_expandtexts_as_csv("match,expand,id,enabled", cond);
+    free(cond);
+
     if (csv_string) {
         fprintf(file, "%s", csv_string);
         free(csv_string);
         LOGGER_INFO("expandtexts saved to file successfully");
     }
 
-    fclose(file);
+    fclose(file); 
 }
 
-char *__load_csv_table(CSVTable *table) {
+void __delete_empty_group(char ***groups, int row_count) {
+    char *data_dir = data_get_dir();
+    char *match_dir = path_join(data_dir, "matches");
+
+    int file_count;
+    char **files = path_listdir(match_dir, &file_count);
+
+    for (int f=0; f < file_count; f++) {
+        bool found = false;
+        char *file = files[f];
+        // Replace . from .csv to get the group name
+        int final_dot = strlen(file) - 4;
+        file[final_dot] = '\0';
+
+        for (int r=1; r < row_count; r++) {
+            if (str_eq(file, groups[r][0])) {
+                found = true;
+                break;
+            }
+        }
+
+        file[final_dot] = '.';
+        if (!found) {
+            char *file_path = path_join(match_dir, file);
+            remove(file_path);
+            free(file_path);
+        }
+        free(file);
+    }
+
+    free(files);
+    free(match_dir);
+    free(data_dir);
+}
+
+void data_io_save() {
+    int row_count, col_count;
+    char ***groups = data_sql_get_raw("DISTINCT \"group\"", NULL, &row_count, &col_count);
+
+    __delete_empty_group(groups, row_count);
+
+    // free the column header
+    free(groups[0][0]);
+    free(groups[0]);
+
+    for (int r=1; r < row_count; r++) {
+        data_io_save_group(groups[r][0]);
+
+        free(groups[r][0]);
+        free(groups[r]);
+    }
+    free(groups);
+}
+
+char *__load_csv_table(CSVTable *table, const char *group) {
     char *error;
 
     int pos_table[4] = {-1, -1, -1, -1};
@@ -84,7 +145,9 @@ char *__load_csv_table(CSVTable *table) {
 
     for (int r = 1; r < table->row_count; r++) {
         char **csv_row = table->fields[r];
+
         DataSqlRow *row = data_sql_row_from_csv(csv_row, pos_table, &error);
+        row->group = strdup(group);
 
         if (row == NULL) {
             return error;
@@ -97,8 +160,8 @@ char *__load_csv_table(CSVTable *table) {
     return NULL;
 }
 
-void data_io_load() {
-    char *save_path = __get_save_file();
+void __load_group(const char *group) {
+    char *save_path = __get_save_file(group);
     char *contents = path_read_all(save_path);
     free(save_path);
 
@@ -111,7 +174,7 @@ void data_io_load() {
     if (table == NULL) {
         return;
     }
-    char *error = __load_csv_table(table);
+    char *error = __load_csv_table(table, group);
     csv_free(table);
 
     if (error != NULL) {
@@ -121,4 +184,27 @@ void data_io_load() {
     }
 
     LOGGER_INFO("expandtexts loaded from file successfully");
+}
+
+void data_io_load() {
+    char *data_dir = data_get_dir();
+    char *match_dir = path_join(data_dir, "matches");
+
+    int count;
+    char **files = path_listdir(match_dir, &count);
+
+    for (int i = 0; i < count; i++) {
+        char *match_file = files[i];
+        char *dot = strrchr(match_file, '.');
+        if (dot != NULL) {
+            *dot = '\0';
+            __load_group(match_file);
+        }
+
+        free(match_file);
+    }
+
+    free(files);
+    free(data_dir);
+    free(match_dir);
 }

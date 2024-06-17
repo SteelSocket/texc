@@ -37,7 +37,7 @@ void __logger_log(const char *message, const char *file_name, int line_no,
         str_format(_f, message, __VA_ARGS__);         \
         LOGGER_MACRO(_f);                             \
         free(_f);                                     \
-    } while (0);
+    } while (0)
 
 #define LOGGER_INFO(message)                                         \
     __logger_log(message, __FILENAME__, __LINE__, __FUNCTION_NAME__, \

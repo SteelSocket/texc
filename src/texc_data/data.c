@@ -60,6 +60,11 @@ bool data_init() {
         LOGGER_INFO("Loaded settings.ini file");
     }
 
+    char *match_dir = path_join(data_dir, "matches");
+    if (!path_is_dir(match_dir))
+        path_make_dir(match_dir);
+
+    free(match_dir);
     free(settings_file);
     free(data_dir);
 

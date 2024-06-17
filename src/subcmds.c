@@ -67,6 +67,11 @@ bool __append_identifier(Args *args, char **url, const char *identifier,
         printf("%s by id: \"%s\"\n", print_info, identifier);
         free(encoded);
         return true;
+    } else if (argparse_flag_found(args, "--group")) {
+        str_rformat(*url, "group=%s", encoded);
+        printf("%s by group: \"%s\"\n", print_info, identifier);
+        free(encoded);
+        return true;
     } else {
         str_rformat(*url, "match=%s", encoded);
         printf("%s by source: \"%s\"\n", print_info, identifier);
@@ -143,34 +148,35 @@ int subcmd_add_match(Args *args) {
     int port;
     __check_server_running(port);
 
-    char *text_match = url_encode(argparse_positional_get(args, "text"));
+    char *match = url_encode(argparse_positional_get(args, "text"));
     char *expand = url_encode(argparse_positional_get(args, "expand"));
     char *enabled = url_encode(argparse_flag_get(args, "--enable"));
+    char *group = url_encode(argparse_flag_get(args, "--group"));
 
     char *url;
-    str_format(url, "/add?match=%s&expand=%s&enabled=%s", text_match, expand,
-               enabled);
+    str_format(url, "/add?match=%s&expand=%s&enabled=%s&group=%s", match, expand,
+               enabled, group);
 
     printf("Adding %s -> %s\n", argparse_positional_get(args, "text"),
            argparse_positional_get(args, "expand"));
 
     char *body = __execute_request(port, url);
-    if (body == NULL) {
-        free(url);
-        free(text_match);
-        free(expand);
-        return 1;
+    int ret_code = 1;
+
+    if (body != NULL) {
+        printf("%s\n", body);
+        free(body);
+        ret_code = 0;
     }
-    printf("%s\n", body);
-    free(body);
+
 
     free(url);
-
-    free(text_match);
+    free(match);
     free(expand);
     free(enabled);
+    free(group);
 
-    return 0;
+    return ret_code;
 }
 
 int subcmd_remove_match(Args *args) {
