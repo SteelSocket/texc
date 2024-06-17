@@ -40,25 +40,25 @@ DataSqlRow *data_sql_row_from_request(Request *request, char **error) {
 
 DataSqlRow *data_sql_row_from_csv(char **csv_row, int *pos_table,
                                   char **error) {
+    // TODO Impl default values for missing fields
+    if (pos_table[ROW_MATCH_IDX] == -1) {
+        *error = strdup("\"match\" csv field is NULL");
+        return NULL;
+    } else if (pos_table[ROW_EXPAND_IDX] == -1) {
+        *error = strdup("\"expand\" csv field is NULL");
+        return NULL;
+    } else if (pos_table[ROW_ID_IDX] == -1) {
+        *error = strdup("\"id\" csv field is NULL");
+        return NULL;
+    } else if (pos_table[ROW_ENABLE_IDX] == -1) {
+        *error = strdup("\"enabled\" csv field is NULL");
+        return NULL;
+    }
+
     char *match = csv_row[pos_table[ROW_MATCH_IDX]];
     char *expand = csv_row[pos_table[ROW_EXPAND_IDX]];
     char *id = csv_row[pos_table[ROW_ID_IDX]];
     char *enabled = csv_row[pos_table[ROW_ENABLE_IDX]];
-
-    // TODO Impl default values for missing fields
-    if (match == NULL) {
-        *error = strdup("\"match\" csv field is NULL");
-        return NULL;
-    } else if (expand == NULL) {
-        *error = strdup("\"expand\" csv field is NULL");
-        return NULL;
-    } else if (id == NULL) {
-        *error = strdup("\"id\" csv field is NULL");
-        return NULL;
-    } else if (enabled == NULL) {
-        *error = strdup("\"enabled\" csv field is NULL");
-        return NULL;
-    }
 
     DataSqlRow *row = malloc(sizeof(DataSqlRow));
     row->index = data_sql_missing_int("_index");
