@@ -127,7 +127,7 @@ void data_io_save() {
 }
 
 char *__load_csv_table(CSVTable *table, const char *group) {
-    char *error;
+    char *error = NULL;
 
     int pos_table[4] = {-1, -1, -1, -1};
     for (int c = 0; c < table->col_count; c++) {

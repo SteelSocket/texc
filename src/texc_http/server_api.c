@@ -61,7 +61,7 @@ char *__get_identifier_param(Request *request, const char **identifier,
 Response *__handle_add(Request *request) {
     mutex_lock(data.mutex);
 
-    char *error;
+    char *error = NULL;
     DataSqlRow *row = data_sql_row_from_request(request, &error);
     if (error == NULL) {
         error = expandtext_add(row);

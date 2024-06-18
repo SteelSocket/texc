@@ -9,7 +9,7 @@
 #include "../texc_utils/array.h"
 #include "../texc_utils/logger.h"
 
-void __row_bind_column(sqlite3_stmt *stmt, DataSqlRow *row) {
+int __row_bind_column(sqlite3_stmt *stmt, DataSqlRow *row) {
     sqlite3_bind_int(stmt, 1, row->index);
 
     sqlite3_bind_text(stmt, 2, row->match, -1, SQLITE_STATIC);
@@ -21,10 +21,14 @@ void __row_bind_column(sqlite3_stmt *stmt, DataSqlRow *row) {
     char *minit = match_get_initializer(row->match);
     if (minit != NULL) {
         sqlite3_bind_text(stmt, 7, minit, -1, SQLITE_STATIC);
-        free(minit);
     } else {
         sqlite3_bind_null(stmt, 7);
     }
+
+    int rc = sqlite3_step(stmt);
+    free(minit);
+
+    return rc;
 }
 
 bool data_sql_init() {
@@ -95,9 +99,7 @@ void data_sql_add(DataSqlRow *row) {
         return;
     }
 
-    __row_bind_column(stmt, row);
-
-    rc = sqlite3_step(stmt);
+    rc = __row_bind_column(stmt, row);
     if (rc != SQLITE_DONE) {
         LOGGER_ERROR(sqlite3_errmsg(data.db));
         sqlite3_finalize(stmt);

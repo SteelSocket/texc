@@ -87,7 +87,7 @@ void __expandtext_add(ExpandText *exptext, int index) {
 }
 
 char *expandtext_add(DataSqlRow *row) {
-    char *error;
+    char *error = NULL;
     ExpandText *exptext = __expandtext_new(row->match, row->expand, &error);
     if (error != NULL)
         return error;
