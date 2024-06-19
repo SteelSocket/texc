@@ -74,7 +74,7 @@ bool __append_identifier(Args *args, char **url, const char *identifier,
         return true;
     } else {
         str_rformat(*url, "match=%s", encoded);
-        printf("%s by source: \"%s\"\n", print_info, identifier);
+        printf("%s by match: \"%s\"\n", print_info, identifier);
         free(encoded);
         return true;
     }

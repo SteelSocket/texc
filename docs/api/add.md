@@ -7,8 +7,9 @@ Used to add a new text-expansion to texc
 
 # Parameters
 
-| parameter |    type     |                   description                    | incompatible |
-| :-------: | :---------: | :----------------------------------------------: | :----------: |
-|   match   | tag string  |                 The match text                   |     NONE     |
-|  expand   | tag string  |                The expanded text                 |     NONE     |
-|  enable   |    bool     |                    Is enabled                    |     NONE     |
+| parameter |    type    |           description           |  default   |
+| :-------: | :--------: | :-----------------------------: | :--------: |
+|   match   | tag string |         The match text          | (Required) |
+|  expand   | tag string |        The expanded text        | (Required) |
+|   group   |   string   | The group of the text-expansion |   "all"    |
+|  enable   |    bool    |           Is enabled            |    true    |

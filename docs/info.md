@@ -13,6 +13,25 @@ The command line interface is documented in the `-h, --help` flags. CLI uses the
 
 # Text Expansion System
 
+## Identifiers
+
+Identifiers are used to delete, modifiy or list text-expansions. 
+
+### match
+- It is the contents of the `text` section
+- There can be multiple matches. The first match loaded will be expanded.
+- Example, to delete a text-expansion do: `texc remove {text}` 
+
+### id
+- It is a unique positive integer assigned to text-expansions
+- Example, to delete a text-expansion do: `text remove --id {id}` 
+
+### group
+- All text-expansions are categorized into groups (The default is `all`)
+- We can add a text-expansion to a group by doing: `texc add {text} {expand} --group {group}`
+- The specified text-expansion will be saved in matches/{group}.csv
+- Example, to disable all text-expansion of a specific group do: `text config --enable false --group {group}` 
+
 ## Enable
 
 A text-expansion is only active if the enable attribute is set to true. Can be set using `config` sub command.

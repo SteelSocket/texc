@@ -6,8 +6,16 @@ Used to change the attributes of text-expansions
 
 # Parameters
 
-| parameter |    type     |         description              | incompatible  |
-| :-------: | :---------: | :------------------------------: | :-----------: |
-|   match   | tag string  |    The match text to remove by   |      id       |
-|    id     |    int      |     The id to remove by          |     match     |
-|  enable   |    bool     | Enable or disable text-expansion |     NONE      |
+## Indentifiers (Mutually exclusive)
+
+| parameter |    type    |            description             |
+| :-------: | :--------: | :--------------------------------: |
+|   match   | tag string | The text section of text-expansion |
+|    id     |    int     |    The id of the text-expansion    |
+|   group   |   string   |  The group of the text-expansions  |
+
+## Config Fields
+
+| parameter | type  |           description            |
+| :-------: | :---: | :------------------------------: |
+|  enable   | bool  | Enable or disable text-expansion |
