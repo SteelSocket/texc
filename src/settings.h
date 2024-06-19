@@ -7,7 +7,7 @@
 typedef struct {
     // General Settings
     LogLevel log_level;
-    
+
     // Match Settings
     bool reset_on_enter;
 

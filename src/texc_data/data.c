@@ -55,8 +55,6 @@ bool data_init() {
         LOGGER_INFO("Created settings.ini file");
     } else {
         data.settings = settings_load(settings_file);
-        logger_set_level(data.settings.log_level);
-
         LOGGER_INFO("Loaded settings.ini file");
     }
 
