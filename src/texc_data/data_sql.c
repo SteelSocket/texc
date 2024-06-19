@@ -107,8 +107,6 @@ void data_sql_add(DataSqlRow *row) {
     }
 
     sqlite3_finalize(stmt);
-    LOGGER_FORMAT_LOG(LOGGER_INFO,
-                      "Added record to expandtexts table with id=%zd", row->id);
 }
 
 char ***data_sql_get_raw(const char *columns, const char *condition,
@@ -122,9 +120,9 @@ char ***data_sql_get_raw(const char *columns, const char *condition,
     if (condition == NULL) {
         str_format(select_sql, "SELECT %s FROM expandtexts", columns);
     } else {
-        str_format(select_sql, "SELECT %s FROM expandtexts WHERE %s", columns, condition);
+        str_format(select_sql, "SELECT %s FROM expandtexts WHERE %s", columns,
+                   condition);
     }
-
 
     int rc = sqlite3_prepare_v2(data.db, select_sql, -1, &stmt, NULL);
     if (rc != SQLITE_OK) {
@@ -159,7 +157,6 @@ char ***data_sql_get_raw(const char *columns, const char *condition,
     sqlite3_finalize(stmt);
     free(select_sql);
     return raw_rows;
-
 }
 
 DataSqlRow **data_sql_get_row(const char *condition, int *size) {

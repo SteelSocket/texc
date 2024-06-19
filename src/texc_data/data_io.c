@@ -12,7 +12,8 @@
 char *__get_save_file(const char *group) {
     char *data_dir = data_get_dir();
     char *save_path;
-    str_format(save_path, "%s" PATH_SEPERATOR "matches" PATH_SEPERATOR "%s.csv", data_dir, group);
+    str_format(save_path, "%s" PATH_SEPERATOR "matches" PATH_SEPERATOR "%s.csv",
+               data_dir, group);
 
     free(data_dir);
     return save_path;
@@ -60,16 +61,19 @@ void data_io_save_group(const char *group) {
     char *cond;
     str_format(cond, "\"group\" = '%s'", group);
 
-    char *csv_string = data_io_expandtexts_as_csv("match,expand,id,enabled", cond);
+    char *csv_string =
+        data_io_expandtexts_as_csv("match,expand,id,enabled", cond);
     free(cond);
 
     if (csv_string) {
         fprintf(file, "%s", csv_string);
         free(csv_string);
-        LOGGER_INFO("expandtexts saved to file successfully");
+        LOGGER_FORMAT_LOG(LOGGER_INFO,
+                          "text-expansions saved to \"%s.csv\" successfully",
+                          group);
     }
 
-    fclose(file); 
+    fclose(file);
 }
 
 void __delete_empty_group(char ***groups, int row_count) {
@@ -79,14 +83,14 @@ void __delete_empty_group(char ***groups, int row_count) {
     int file_count;
     char **files = path_listdir(match_dir, &file_count);
 
-    for (int f=0; f < file_count; f++) {
+    for (int f = 0; f < file_count; f++) {
         bool found = false;
         char *file = files[f];
         // Replace . from .csv to get the group name
         int final_dot = strlen(file) - 4;
         file[final_dot] = '\0';
 
-        for (int r=1; r < row_count; r++) {
+        for (int r = 1; r < row_count; r++) {
             if (str_eq(file, groups[r][0])) {
                 found = true;
                 break;
@@ -109,7 +113,8 @@ void __delete_empty_group(char ***groups, int row_count) {
 
 void data_io_save() {
     int row_count, col_count;
-    char ***groups = data_sql_get_raw("DISTINCT \"group\"", NULL, &row_count, &col_count);
+    char ***groups =
+        data_sql_get_raw("DISTINCT \"group\"", NULL, &row_count, &col_count);
 
     __delete_empty_group(groups, row_count);
 
@@ -117,7 +122,7 @@ void data_io_save() {
     free(groups[0][0]);
     free(groups[0]);
 
-    for (int r=1; r < row_count; r++) {
+    for (int r = 1; r < row_count; r++) {
         data_io_save_group(groups[r][0]);
 
         free(groups[r][0]);
@@ -178,12 +183,14 @@ void __load_group(const char *group) {
     csv_free(table);
 
     if (error != NULL) {
-        LOGGER_ERROR(error);
-        LOGGER_INFO("failed to load expandtexts from file");
+        LOGGER_FORMAT_LOG(LOGGER_ERROR, "Failed to load \"%s.csv\" (%s)", group,
+                          error);
         return;
     }
 
-    LOGGER_INFO("expandtexts loaded from file successfully");
+    LOGGER_FORMAT_LOG(LOGGER_INFO,
+                      "Loaded text-expansions from \"%s.csv\" successfully",
+                      group);
 }
 
 void data_io_load() {

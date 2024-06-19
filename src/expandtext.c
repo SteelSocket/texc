@@ -91,10 +91,12 @@ char *expandtext_add(DataSqlRow *row) {
     ExpandText *exptext = __expandtext_new(row->match, row->expand, &error);
     if (error != NULL)
         return error;
-    __expandtext_add(exptext, row->index);
 
+    __expandtext_add(exptext, row->index);
     data_sql_add(row);
 
+    LOGGER_FORMAT_LOG(LOGGER_INFO,
+                      "Added record to expandtexts table with id=%zd", row->id);
     return NULL;
 }
 
@@ -115,7 +117,7 @@ char *expandtext_delete(const char *ident, ETxIdentifier by) {
         return NULL;
     }
 
-    for (int i=0; i < count; i++) {
+    for (int i = 0; i < count; i++) {
         DataSqlRow *row = rows[i];
         ExpandText *exptext = data.exptexts[row->index];
 
@@ -135,11 +137,13 @@ char *expandtext_delete(const char *ident, ETxIdentifier by) {
     }
 
     if (by == ETx_BY_MATCH)
-        LOGGER_FORMAT_LOG(LOGGER_INFO, "deleted expandtext with match=%s", ident);
+        LOGGER_FORMAT_LOG(LOGGER_INFO, "deleted expandtext with match=%s",
+                          ident);
     else if (by == ETx_BY_ID)
         LOGGER_FORMAT_LOG(LOGGER_INFO, "deleted expandtext with id=%s", ident);
     else if (by == ETx_BY_GROUP)
-        LOGGER_FORMAT_LOG(LOGGER_INFO, "deleted expandtext with group=%s", ident);
+        LOGGER_FORMAT_LOG(LOGGER_INFO, "deleted expandtext with group=%s",
+                          ident);
 
     return NULL;
 }

@@ -37,7 +37,7 @@ void __handle_client(void *data) {
 
     int size = socket_recv_all(client, &buffer, 5);
     if (size == -1) {
-        LOGGER_INFO(socket_get_error());
+        LOGGER_WARNING(socket_get_error());
         socket_close(client);
         return;
     }
@@ -48,7 +48,7 @@ void __handle_client(void *data) {
         socket_close(client);
         response_free(response);
 
-        LOGGER_INFO("client socket recv timeout");
+        LOGGER_WARNING("client socket recv timeout");
         return;
     }
 
@@ -63,7 +63,7 @@ void __handle_client(void *data) {
         socket_close(client);
         response_free(response);
 
-        LOGGER_INFO("client socket recv invalid request format");
+        LOGGER_WARNING("client socket recv invalid request format");
         return;
     }
 
@@ -79,7 +79,7 @@ void __server_start(void *_) {
     while (1) {
         SOCKET client = socket_accept(__server_socket);
         if (client == INVALID_SOCKET) {
-            LOGGER_INFO(socket_get_error());
+            LOGGER_WARNING(socket_get_error());
             continue;
         }
 
