@@ -11,29 +11,6 @@
 
 // ---------------------------------------------------------
 
-Tag *tag_clone(Tag *tag) {
-    Tag *ctag = malloc(sizeof(Tag));
-
-    ctag->name = strdup(tag->name);
-    if (tag->text != NULL)
-        ctag->text = strdup(tag->text);
-    else
-        ctag->text = NULL;
-
-    ctag->tags_len = tag->tags_len;
-    ctag->tags = NULL;
-    if (tag->tags_len) {
-        ctag->tags = malloc(ctag->tags_len * sizeof(Tag *));
-        for (size_t i = 0; i < tag->tags_len; i++) {
-            ctag->tags[i] = tag_clone(tag->tags[i]);
-        }
-    }
-
-    return ctag;
-}
-
-// ---------------------------------------------------------
-
 char *__tokenize(char *src, char delimeter, char **save) {
     if (src == NULL) {
         if (*save == NULL || **save == '\0')
@@ -56,8 +33,6 @@ char *__tokenize(char *src, char delimeter, char **save) {
     *save = NULL;
     return src;
 }
-
-// ---------------------------------------------------------
 
 char *__tag_brackets_strip(const char *text) {
     char *read = strdup(text);
@@ -83,6 +58,15 @@ char *__tag_brackets_strip(const char *text) {
     return read;
 }
 
+// ---------------------------------------------------------
+
+void __tag_insert(Tag *tag, Tag *child) {
+    if (tag->tags == NULL)
+        tag->tags = array_create(Tag *);
+
+    array_resize_add(tag->tags, tag->tags_len, child, Tag *);
+}
+
 void __tag_insert_raw(Tag *tag, const char *name, const char *text) {
     char *ctext = (text != NULL) ? __tag_brackets_strip(text) : NULL;
 
@@ -94,7 +78,7 @@ void __tag_insert_raw(Tag *tag, const char *name, const char *text) {
     ctag->tags = NULL;
     ctag->tags_len = 0;
 
-    tag_insert(tag, ctag);
+    __tag_insert(tag, ctag);
 }
 
 void __tag_insert_text(Tag *tag, const char *text) {
@@ -189,7 +173,7 @@ void __tag_parse_tag(Tag *tag, const char *name, char **save) {
 
     Tag *ctag = tag_parse(*save, name);
     if (ctag != NULL) {
-        tag_insert(tag, ctag);
+        __tag_insert(tag, ctag);
     }
 
     *end_tag = '<';
@@ -260,37 +244,6 @@ Tag *tag_parse(const char *source, const char *tag_name) {
     return __tag_parse(max_len, source, tag_name);
 }
 
-// ---------------------------------------------------------
-
-void __add_indent(char **s, int indent) {
-    if (indent <= 0)
-        return;
-    *s = realloc(*s, strlen(*s) + 1 + (indent * 4));
-    for (size_t i = 0; i < indent * 4; i++) {
-        strcat(*s, " ");
-    }
-}
-
-// ---------------------------------------------------------
-
-void tag_insert(Tag *tag, Tag *child) {
-    if (tag->tags == NULL)
-        tag->tags = array_create(Tag *);
-
-    array_resize_add(tag->tags, tag->tags_len, child, Tag *);
-}
-
-Tag *tag_new(const char *name) {
-    Tag *tag = malloc(sizeof(Tag));
-
-    tag->name = strdup(name);
-    tag->text = NULL;
-
-    tag->tags = NULL;
-    tag->tags_len = 0;
-
-    return tag;
-}
 
 // ---------------------------------------------------------
 

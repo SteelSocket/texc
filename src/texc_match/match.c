@@ -113,7 +113,7 @@ char *match_get_initializer(const char *match) {
         .is_casesensitive = true,
     };
     Tag *match_tag = tag_parse(match, "match");
-    
+
     char *buffer;
     __match_get_initializer(match_tag, &settings, &buffer);
 

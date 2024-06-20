@@ -219,22 +219,3 @@ int data_sql_delete(const char *condition) {
 
     return delete_count;
 }
-
-void data_sql_print() {
-    printf("--------------------------------------------------\n");
-    printf("--------------------------------------------------\n");
-    int count;
-    DataSqlRow **rows = data_sql_get_row(NULL, &count);
-    if (rows != NULL) {
-        for (int i = 0; i < count; i++) {
-            DataSqlRow *row = rows[i];
-            printf("::%zd, %zd::\n", row->index, row->id);
-            data_sql_row_free(row);
-        }
-
-        free(rows);
-    }
-
-    printf("--------------------------------------------------\n");
-    printf("--------------------------------------------------\n\n");
-}

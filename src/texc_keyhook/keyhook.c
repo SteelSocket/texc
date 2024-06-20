@@ -30,7 +30,7 @@ Tag *keyhook_expand_tag = NULL;
 
 void keyhook_expand_matched() {
     int right_press = keybuffer_cursor;
-    for (int i=0; i < right_press; i++) {
+    for (int i = 0; i < right_press; i++) {
         keyboard_press_release(KEYBOARD_RIGHT_ARROW);
     }
 
@@ -62,12 +62,13 @@ void keyhook_expand_matched() {
 
 bool keyhook_check_for_match(KeyEvent event) {
     int count;
-    
+
     char *get_query;
     char last_char = keybuffer[keybuffer_size - 1];
 
     if (last_char != '\'')
-        str_format(get_query, "enabled = 1 AND INSTR(__match_init, '%c') > 0", keybuffer[keybuffer_size-1]);
+        str_format(get_query, "enabled = 1 AND INSTR(__match_init, '%c') > 0",
+                   keybuffer[keybuffer_size - 1]);
     else
         str_mcpy(get_query, "enabled = 1 AND INSTR(__match_init, '''') > 0");
 
@@ -93,7 +94,7 @@ bool keyhook_check_for_match(KeyEvent event) {
             keyhook_match_settings = match_settings;
             keyhook_expand_tag = expand;
 
-            for (int j=i; j < count; j++) {
+            for (int j = i; j < count; j++) {
                 data_sql_row_free(rows[j]);
             }
             free(rows);
@@ -145,8 +146,8 @@ void keyhook_handle_event(KeyEvent event) {
     }
 
     // Up and Down arrow
-    if (keyboard_is_pressed(KEYBOARD_DOWN_ARROW) ||
-        keyboard_is_pressed(KEYBOARD_UP_ARROW)) {
+    if (event.keycode == KEYBOARD_DOWN_ARROW ||
+        event.keycode == KEYBOARD_UP_ARROW) {
         keyhook_reset();
         return;
     }

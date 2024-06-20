@@ -35,9 +35,9 @@ char **path_listdir(const char *path, int *count);
 #define _WINSOCKAPI_
 #include <windows.h>
 #else
+#include <dirent.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <dirent.h>
 #endif
 
 char *path_join(const char *path1, const char *path2) {

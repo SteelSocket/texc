@@ -154,8 +154,8 @@ int subcmd_add_match(Args *args) {
     char *group = url_encode(argparse_flag_get(args, "--group"));
 
     char *url;
-    str_format(url, "/add?match=%s&expand=%s&enabled=%s&group=%s", match, expand,
-               enabled, group);
+    str_format(url, "/add?match=%s&expand=%s&enabled=%s&group=%s", match,
+               expand, enabled, group);
 
     printf("Adding %s -> %s\n", argparse_positional_get(args, "text"),
            argparse_positional_get(args, "expand"));
@@ -168,7 +168,6 @@ int subcmd_add_match(Args *args) {
         free(body);
         ret_code = 0;
     }
-
 
     free(url);
     free(match);

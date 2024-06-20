@@ -12,18 +12,6 @@ typedef struct Tag {
     size_t tags_len;
 } Tag;
 
-char *__tag_source_minify(const char *s);
-
-// ---------------------------------------------------------
-
-Tag *tag_clone(Tag *tag);
-
-// ---------------------------------------------------------
-
-void tag_insert(Tag *tag, Tag *child);
-
-Tag *tag_new(const char *name);
-
 // ---------------------------------------------------------
 
 Tag *tag_parse(const char *source, const char *tag_name);
