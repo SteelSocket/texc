@@ -11,6 +11,14 @@ bool keyboard_is_pressed(int keycode) {
 #endif
 }
 
+bool keyboard_is_toggled(int keycode) {
+#ifdef _WIN32
+    return GetKeyState(keycode) & 1;
+#else
+#error "not implemented"
+#endif
+}
+
 void keyboard_press(int keycode) { _keyboard_raw_press(keycode); }
 
 void keyboard_release(int keycode) { _keyboard_raw_release(keycode); }

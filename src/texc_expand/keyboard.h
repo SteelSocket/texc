@@ -14,6 +14,7 @@
 
 #define KEYBOARD_SHIFT VK_SHIFT
 #define KEYBOARD_CONTROL VK_CONTROL
+#define KEYBOARD_NUMLOCK VK_NUMLOCK
 
 #else
 #error "Not implemented"
@@ -28,6 +29,14 @@
  * @return Boolean indicating if the key is pressed
  */
 bool keyboard_is_pressed(int keycode);
+
+/**
+ * @brief Checks if a key is toggled
+ *
+ * @param keycode KEYBOARD_* keycode
+ * @return Boolean indicating if the key is toggled or not
+ */
+bool keyboard_is_toggled(int keycode);
 
 /**
  * @brief Presses a key

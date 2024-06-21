@@ -29,38 +29,6 @@ bool keyhook_try_expand = false;
 MatchSettings keyhook_match_settings = {0};
 Tag *keyhook_expand_tag = NULL;
 
-void keyhook_expand_matched() {
-    int right_press = keybuffer_cursor;
-    for (int i = 0; i < right_press; i++) {
-        keyboard_press_release(KEYBOARD_RIGHT_ARROW);
-    }
-
-    keyhook_is_expanding = true;
-    int delete_count = keybuffer_size - keyhook_match_settings.cursor;
-
-    //
-    // For undo
-    //
-    char *last_source = malloc((delete_count + 1) * sizeof(char));
-    memcpy(last_source, keybuffer + keyhook_match_settings.cursor,
-           delete_count);
-    last_source[delete_count] = '\0';
-
-    ExpandSettings expand_settings =
-        expand_text(delete_count, keyhook_expand_tag);
-
-    if (expand_settings.is_undoable && keyhook_match_settings.is_undoable) {
-        keyhook_expand_len = expand_settings.typed_count;
-        keyhook_last_source = last_source;
-    } else {
-        free(last_source);
-    }
-
-    keyhook_is_expanding = false;
-    keyhook_match_settings = (MatchSettings){0};
-    keyhook_expand_tag = NULL;
-}
-
 bool keyhook_check_for_match(KeyEvent event) {
     int count;
 
@@ -106,6 +74,49 @@ bool keyhook_check_for_match(KeyEvent event) {
 
     free(rows);
     return false;
+}
+
+void keyhook_expand_matched() {
+    int right_press = keybuffer_cursor;
+    bool num_lock = keyboard_is_toggled(KEYBOARD_NUMLOCK);
+
+    // Disable num lock as right arrow key press will not work if num lock is on
+    if (num_lock) {
+        keyboard_press_release(KEYBOARD_NUMLOCK);
+    }
+
+    for (int i = 0; i < right_press; i++) {
+        keyboard_press_release(KEYBOARD_RIGHT_ARROW);
+    }
+
+    if (num_lock) {
+        keyboard_press_release(KEYBOARD_NUMLOCK);
+    }
+
+    keyhook_is_expanding = true;
+    int delete_count = keybuffer_size - keyhook_match_settings.cursor;
+
+    //
+    // For undo
+    //
+    char *last_source = malloc((delete_count + 1) * sizeof(char));
+    memcpy(last_source, keybuffer + keyhook_match_settings.cursor,
+           delete_count);
+    last_source[delete_count] = '\0';
+
+    ExpandSettings expand_settings =
+        expand_text(delete_count, keyhook_expand_tag);
+
+    if (expand_settings.is_undoable && keyhook_match_settings.is_undoable) {
+        keyhook_expand_len = expand_settings.typed_count;
+        keyhook_last_source = last_source;
+    } else {
+        free(last_source);
+    }
+
+    keyhook_is_expanding = false;
+    keyhook_match_settings = (MatchSettings){0};
+    keyhook_expand_tag = NULL;
 }
 
 void keyhook_handle_event(KeyEvent event) {
