@@ -7,7 +7,7 @@
 #include <ctype.h>
 
 bool __char_eq(char c1, char c2, MatchSettings *settings) {
-    if (settings->is_casesensitive)
+    if (settings->__is_casesensitive)
         return c1 == c2;
     return tolower(c1) == tolower(c2);
 }
@@ -60,7 +60,7 @@ MatchSettings match_text(Tag *match) {
         .ok = true,
         .cursor = keybuffer_size,
         .is_undoable = true,
-        .is_casesensitive = true,
+        .__is_casesensitive = true,
     };
 
     __match_text(match, &settings);
@@ -85,7 +85,7 @@ void __match_get_initializer(Tag *tag, MatchSettings *settings, char **buf) {
         int i = strlen(tag->text) - 1;
         char c = tag->text[i];
 
-        if (settings->is_casesensitive || !isalpha(c)) {
+        if (settings->__is_casesensitive || !isalpha(c)) {
             str_format(*buf, "%c", c);
             return;
         } else {
@@ -110,7 +110,7 @@ char *match_get_initializer(const char *match) {
         .ok = true,
         .cursor = keybuffer_size,
         .is_undoable = true,
-        .is_casesensitive = true,
+        .__is_casesensitive = true,
     };
     Tag *match_tag = tag_parse(match, "match");
 

@@ -13,13 +13,6 @@ const Settings settings_default = {
     .repeat_delay = 120,
 };
 
-#define IN_GENERAL_SECTION(sec, name, key) \
-    str_eq(sec, "general_settings") && str_eq(name, key)
-#define IN_MATCH_SECTION(sec, name, key) \
-    str_eq(sec, "match_settings") && str_eq(name, key)
-#define IN_EXPAND_SECTION(sec, name, key) \
-    str_eq(sec, "expand_settings") && str_eq(name, key)
-
 #define FORMAT_ERROR(var, sec, name, msg) \
     str_format(var, "In section \"%s\" at key \"%s\" : %s", sec, name, msg)
 

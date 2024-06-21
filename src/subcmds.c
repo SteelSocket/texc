@@ -144,7 +144,7 @@ int subcmd_close_server(Args *args) {
     return 0;
 }
 
-int subcmd_add_match(Args *args) {
+int subcmd_add_exptexts(Args *args) {
     int port;
     __check_server_running(port);
 
@@ -178,7 +178,7 @@ int subcmd_add_match(Args *args) {
     return ret_code;
 }
 
-int subcmd_remove_match(Args *args) {
+int subcmd_remove_exptexts(Args *args) {
     int port;
     __check_server_running(port);
 
@@ -228,7 +228,7 @@ int subcmd_list_exptexts(Args *args) {
     return 0;
 }
 
-int subcmd_config_match(Args *args) {
+int subcmd_config_exptexts(Args *args) {
     int port;
     __check_server_running(port);
 

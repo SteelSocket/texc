@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 #include "../texc_data/data.h"
+#include "../texc_data/data_sql.h"
 #include "../texc_utils/logger.h"
 
 #include "../texc_expand/keyboard.h"
@@ -19,7 +20,7 @@ bool keyhook_is_expanding = false;
 // --------------------------------
 bool keyhook_try_undo = false;
 char *keyhook_last_source = NULL;
-int keyhook_expand_len = 0;
+size_t keyhook_expand_len = 0;
 
 // --------------------------------
 // Expand Variables

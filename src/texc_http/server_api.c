@@ -17,15 +17,6 @@
 #define __ERR_QUERY_REQUIRED(query, type) \
     "The query \"" query "\": " type " is required"
 
-#define __QUERY_REQUIRED_GET(request, var, query, type)                  \
-    do {                                                                 \
-        var = request_get_query(request, query);                         \
-        if (var == NULL) {                                               \
-            LOGGER_WARNING(__ERR_QUERY_REQUIRED(query, type));           \
-            return response_new(400, __ERR_QUERY_REQUIRED(query, type)); \
-        }                                                                \
-    } while (0)
-
 char *__get_identifier_param(Request *request, const char **identifier,
                              ETxIdentifier *itype) {
     const char *match = request_get_query(request, "match");

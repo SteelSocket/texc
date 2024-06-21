@@ -32,12 +32,12 @@ const char *mtag_key_char(void *data, void *settings) {
 
 bool mtag_tcase_enter(void *data, void *settings) {
     MatchSettings *ma_settings = (MatchSettings *)settings;
-    ma_settings->is_casesensitive = !ma_settings->is_casesensitive;
+    ma_settings->__is_casesensitive = !ma_settings->__is_casesensitive;
 
     return true;
 }
 
 void mtag_tcase_exit(void *data, void *settings) {
     MatchSettings *ma_settings = (MatchSettings *)settings;
-    ma_settings->is_casesensitive = !ma_settings->is_casesensitive;
+    ma_settings->__is_casesensitive = !ma_settings->__is_casesensitive;
 }

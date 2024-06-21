@@ -18,21 +18,6 @@
 #include <math.h>
 #include <string.h>
 
-#define EXPANDTEXT_ITER(i, body)            \
-    do {                                    \
-        int iter = 0;                       \
-        int i = 0;                          \
-        while (iter < data.exptext_len) {   \
-            if (data.exptexts[i] == NULL) { \
-                i++;                        \
-                continue;                   \
-            }                               \
-            body;                           \
-            iter++;                         \
-            i++;                            \
-        }                                   \
-    } while (0)
-
 ExpandText *__expandtext_new(const char *match_str, const char *expand_str,
                              char **error) {
     Tag *match = tag_parse(match_str, "match");

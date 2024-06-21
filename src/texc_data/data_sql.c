@@ -159,7 +159,7 @@ char ***data_sql_get_raw(const char *columns, const char *condition,
     return raw_rows;
 }
 
-DataSqlRow **data_sql_get_row(const char *condition, int *size) {
+DataSqlRow **data_sql_get_row(const char *condition, int *count) {
     sqlite3_stmt *stmt;
     char *select_sql;
 
@@ -177,11 +177,11 @@ DataSqlRow **data_sql_get_row(const char *condition, int *size) {
     }
 
     DataSqlRow **rows = array_create(DataSqlRow *);
-    *size = 0;
+    *count = 0;
 
     while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
         DataSqlRow *row = data_sql_row_from_stmt(stmt);
-        array_resize_add(rows, *size, row, DataSqlRow *);
+        array_resize_add(rows, *count, row, DataSqlRow *);
     }
 
     sqlite3_finalize(stmt);

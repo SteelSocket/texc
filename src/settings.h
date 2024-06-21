@@ -18,6 +18,12 @@ typedef struct {
 
 extern const Settings settings_default;
 
+/**
+ * @brief Saves the settings to a ini file
+ */
 void settings_save(const char *file_path, Settings settings);
 
+/**
+ * @brief Loads the settings from a ini file
+ */
 Settings settings_load(const char *file_path);

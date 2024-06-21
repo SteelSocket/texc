@@ -49,6 +49,21 @@ typedef struct {
 
 } TagMap;
 
+/**
+ * @brief Gets the TagMap of the given tag name
+ *
+ *
+ * @param tag_name The name of the tag
+ * @param is_match Boolean indicating if the tag belongs to match tags or expand tags
+ * @return The tagmap of the given tag. This function does not fail due to tagmap_validate().
+ */
 const TagMap tagmap_get(const char *tag_name, bool is_match);
 
+/**
+ * @brief Checks if the given tag contains valid match or expand tags
+ *
+ * @param tag The root match/expand tag
+ * @param is_match Boolean indicating if the tag belongs to match tags or expand tags
+ * @return error message
+ */
 char *tagmap_validate(Tag *tag, bool is_match);

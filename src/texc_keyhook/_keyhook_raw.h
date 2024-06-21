@@ -15,7 +15,6 @@
 #include <windows.h>
 
 static DWORD __keyhook_thread;
-static Mutex *__keyhook_mutex;
 
 char __to_ascii(KBDLLHOOKSTRUCT *kbstruct) {
     BYTE keyboardState[256] = {0};
@@ -79,7 +78,6 @@ LRESULT CALLBACK mousehook_callback(int nCode, WPARAM wParam, LPARAM lParam) {
 
 void keyhook_raw_run() {
     __keyhook_thread = GetCurrentThreadId();
-    __keyhook_mutex = mutex_create();
 
     HHOOK khook = SetWindowsHookEx(WH_KEYBOARD_LL, keyhook_callback, NULL, 0);
     HHOOK mhook = SetWindowsHookEx(WH_MOUSE_LL, mousehook_callback, NULL, 0);
@@ -96,7 +94,6 @@ void keyhook_raw_run() {
 
     UnhookWindowsHookEx(mhook);
     UnhookWindowsHookEx(khook);
-    mutex_destroy(__keyhook_mutex);
 }
 
 void keyhook_raw_quit() {

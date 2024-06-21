@@ -29,15 +29,15 @@ int main(int argc, char *argv[]) {
     if (str_eq(cmd_name, "texc") || str_eq(cmd_name, "server")) {
         exit_code = subcmd_start_server(args);
     } else if (str_eq(cmd_name, "add")) {
-        exit_code = subcmd_add_match(args);
+        exit_code = subcmd_add_exptexts(args);
     } else if (str_eq(cmd_name, "remove")) {
-        exit_code = subcmd_remove_match(args);
+        exit_code = subcmd_remove_exptexts(args);
     } else if (str_eq(cmd_name, "close")) {
         exit_code = subcmd_close_server(args);
     } else if (str_eq(cmd_name, "list")) {
         exit_code = subcmd_list_exptexts(args);
     } else if (str_eq(cmd_name, "config")) {
-        exit_code = subcmd_config_match(args);
+        exit_code = subcmd_config_exptexts(args);
     }
     socket_cleanup();
 
