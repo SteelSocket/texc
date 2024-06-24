@@ -42,7 +42,7 @@ char __to_ascii(KBDLLHOOKSTRUCT *kbstruct) {
 }
 
 LRESULT CALLBACK keyhook_callback(int nCode, WPARAM wParam, LPARAM lParam) {
-    LRESULT CALLBACK result = CallNextHookEx(NULL, nCode, wParam, lParam);
+    LRESULT result = CallNextHookEx(NULL, nCode, wParam, lParam);
 
     if (nCode == HC_ACTION && (wParam == WM_KEYDOWN || wParam == WM_KEYUP)) {
         KBDLLHOOKSTRUCT *kbstruct = (KBDLLHOOKSTRUCT *)lParam;

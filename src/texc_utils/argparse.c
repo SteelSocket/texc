@@ -150,9 +150,9 @@ void __print_help_header(ArgParser *parser) {
 
 void __print_help_options(ArgParser *parser, size_t offset) {
     printf("Options:\n");
-    printf("  %-*s %s\n", offset, "-h,--help", "Shows command line usage");
+    printf("  %-*s %s\n", (int)offset, "-h,--help", "Shows command line usage");
     for (size_t i = 0; i < parser->opt_length; i++) {
-        printf("  %-*s %s\n", offset, parser->options[i].flags,
+        printf("  %-*s %s\n", (int)offset, parser->options[i].flags,
                parser->options[i].help);
     }
     printf("\n");
@@ -161,7 +161,7 @@ void __print_help_options(ArgParser *parser, size_t offset) {
 void __print_help_subcommands(ArgParser *parser, size_t offset) {
     printf("Subcommands:\n");
     for (size_t i = 0; i < parser->sub_parsers_len; i++) {
-        printf("  %-*s %s\n", offset, parser->sub_parsers[i]->name,
+        printf("  %-*s %s\n", (int)offset, parser->sub_parsers[i]->name,
                parser->sub_parsers[i]->help);
     }
     printf("\n");

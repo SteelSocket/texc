@@ -94,7 +94,8 @@ void __match_get_initializer(Tag *tag, MatchSettings *settings, char **buf) {
         }
     } else {
         int i = tag->tags_len - 1;
-        return __match_get_initializer(tag->tags[i], settings, buf);
+        __match_get_initializer(tag->tags[i], settings, buf);
+        return;
     }
 
     if (!is_container && map.tag_exit != NULL) {

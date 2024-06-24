@@ -19,7 +19,7 @@ size_t __client_thread_len = 0;
 
 FILE *__port_file;
 
-void __delete_port_file() {
+void __delete_port_file(void) {
     fclose(__port_file);
     char *port_path = data_get_port_file();
     remove(port_path);

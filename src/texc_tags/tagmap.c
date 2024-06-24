@@ -17,13 +17,13 @@
 
 #define __GET_MAP_TYPE(is_match) is_match ? "match" : "expand"
 #define __STD_EXPAND_TAGMAP(tname, key_code)                     \
-    (const TagMap) {                                             \
+    {                                                            \
         .tag_name = tname, .data = (void *)(intptr_t)key_code,   \
         .flags = TAGMAP_FLAGS_NONE, .tag_enter = etag_std_press, \
         .tag_exit = etag_std_release,                            \
     }
 #define __STD_MATCH_TAGMAP(tname, char_str)                            \
-    (const TagMap) {                                                   \
+    {                                                                  \
         .tag_name = tname, .data = (void *)char_str,                   \
         .flags = TAGMAP_FLAGS_STANDALONE, .tag_enter = mtag_key_check, \
         .tag_char = mtag_key_char,                                     \
@@ -33,11 +33,11 @@
 // TagMap for all match tags
 // ---------------------------------
 
-const TagMap __tagmap_match[] = {
+TagMap __tagmap_match[] = {
     __STD_MATCH_TAGMAP("enter", __ENTER_CHARACTER),
     __STD_MATCH_TAGMAP("tab", "\t"),
 
-    (const TagMap){
+    {
         .tag_name = "tcase",
         .flags = TAGMAP_FLAGS_TEXT_ONLY,
         .tag_enter = mtag_tcase_enter,
@@ -61,16 +61,15 @@ const TagMap __tagmap_expand[] = {
 };
 size_t __tagmap_expand_len = array_len(__tagmap_expand);
 // ---------------------------------
-
-void __handle_tag_name(Tag *tag, bool is_match, char **error_msg) {
-    TagMap current_map = tagmap_get(tag->name, is_match);
-    const char *map_type = __GET_MAP_TYPE(is_match);
-
 #define __TM_FLAG_ERR(msg)                                             \
     do {                                                               \
         str_format(*error_msg, "(%s) <%s> " msg, map_type, tag->name); \
         return;                                                        \
     } while (0)
+
+void __handle_tag_name(Tag *tag, bool is_match, char **error_msg) {
+    TagMap current_map = tagmap_get(tag->name, is_match);
+    const char *map_type = __GET_MAP_TYPE(is_match);
 
     if (current_map.tag_name == NULL) {
         if (strlen(tag->name) == 1)
@@ -103,8 +102,6 @@ void __handle_tag_name(Tag *tag, bool is_match, char **error_msg) {
 
     if (current_map.tag_validate != NULL)
         *error_msg = current_map.tag_validate(tag);
-
-#undef __TM_FLAG_ERR
 }
 
 void __tagmap_validate(Tag *tag, bool is_match, char **error_msg) {
