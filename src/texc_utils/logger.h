@@ -8,7 +8,7 @@ typedef enum {
     LOGGER_LEVEL_ERROR,
 } LogLevel;
 
-void logger_set_logfile(const char *path);
+void logger_init(const char *log_file);
 
 void logger_set_level(LogLevel level);
 
@@ -51,14 +51,30 @@ void __logger_log(const char *message, const char *file_name, int line_no,
 
 #ifdef UTILS_IMPLEMENTATION
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <time.h>
 
+#ifndef _WIN32
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+#endif
+
 static FILE *__log_file;
+static bool __is_in_background;
 static LogLevel __logger_level = LOGGER_LEVEL_INFO;
 
-void logger_set_logfile(const char *path) {
-    __log_file = freopen(path, "w", stdout);
+void logger_init(const char *log_file) {
+    __log_file = fopen(log_file, "w");
+#ifdef _WIN32
+    __is_in_background = getenv("TEXC_BACKGROUND") != NULL;
+#else
+    pid_t this_pgid = getpgrp();
+    pid_t f_pgid = tcgetpgrp(STDOUT_FILENO);  // Get foreground process group ID
+    __is_in_background = this_pgid != f_pgid;
+#endif
 }
 
 void logger_set_level(LogLevel level) { __logger_level = level; }
@@ -91,8 +107,14 @@ void __logger_log(const char *message, const char *file_name, int line_no,
     char log_time[26];
     strftime(log_time, 26, "%H:%M:%S", time_info);
 
-    printf("%s: [%s] %s:%d (%s) -> \"%s\"\n", log_level, log_time, file_name,
-           line_no, func_name, message);
+    if (!__is_in_background)
+        printf("%s: [%s] %s:%d (%s) -> \"%s\"\n", log_level, log_time,
+               file_name, line_no, func_name, message);
+
+    if (__log_file != NULL)
+        fprintf(__log_file, "%s: [%s] %s:%d (%s) -> \"%s\"\n", log_level, log_time,
+                file_name, line_no, func_name, message);
+
     fflush(stdout);
 }
 #endif

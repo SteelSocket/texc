@@ -3,36 +3,67 @@
 
 #include "../texc_data/data.h"
 
-bool keyboard_is_pressed(int keycode) {
+#ifndef _WIN32
+#include <X11/XKBlib.h>
+#endif
+
+bool keyboard_is_pressed(KEYBOARD_KEYCODE keycode) {
 #ifdef _WIN32
     return GetAsyncKeyState(keycode) < 0;
 #else
-#error "not implemented"
+    KeyCode xkeycode = XKeysymToKeycode(__keyhook_display, keycode);
+    char keys[32] = {0};
+    XQueryKeymap(__keyhook_display, keys);
+    return keys[xkeycode / 8] & (1 << (xkeycode % 8));
 #endif
 }
 
-bool keyboard_is_toggled(int keycode) {
+bool keyboard_is_toggled(KEYBOARD_KEYCODE keycode) {
 #ifdef _WIN32
     return GetKeyState(keycode) & 1;
 #else
-#error "not implemented"
+    unsigned int state;
+    XkbGetIndicatorState(__keyhook_display, XkbUseCoreKbd, &state);
+
+    switch (keycode) {
+        case XK_Caps_Lock:
+            return state & 1;
+        case XK_Num_Lock:
+            return state & 2;
+        case XK_Scroll_Lock:
+            return state & 4;
+        default:
+            return false;
+    }
 #endif
 }
 
-void keyboard_press(int keycode) { _keyboard_raw_press(keycode); }
+void keyboard_press(KEYBOARD_KEYCODE keycode) {
+#ifdef _WIN32
+    _keyboard_raw_press(MapVirtualKeyA(keycode, 0));
+#else
+    _keyboard_raw_press(XKeysymToKeycode(__keyhook_display, keycode));
+#endif
+}
 
-void keyboard_release(int keycode) { _keyboard_raw_release(keycode); }
+void keyboard_release(KEYBOARD_KEYCODE keycode) {
+#ifdef _WIN32
+    _keyboard_raw_release(MapVirtualKeyA(keycode, 0));
+#else
+    _keyboard_raw_release(XKeysymToKeycode(__keyhook_display, keycode));
+#endif
+}
 
-void keyboard_press_release(int keycode) {
+void keyboard_press_release(KEYBOARD_KEYCODE keycode) {
     keyboard_press(keycode);
     keyboard_release(keycode);
 }
 
-int keyboard_keycode_from_char(char character) {
+int keyboard_keycode_from_char(const char *character) {
 #ifdef _WIN32
-    return __win_keycode_from_char(character);
+    return LOBYTE(VkKeyScan(*character));
 #else
-#error "Not implemented"
+    return XStringToKeysym(character);
 #endif
 }
 
@@ -43,12 +74,14 @@ void keyboard_nomod_type_string(const char *str) {
     while (*s != '\0') {
         keyboard_nomod_type(*s);
         s++;
-#ifdef _WIN32
         // Few apps like web browsers need this
         // when we type the same characters twice in a sequence
         // as they do not seem to register such rapid presses
         if (*(s - 1) == *s)
+#ifdef _WIN32
             Sleep(data.settings.repeat_delay);
+#else
+            usleep(data.settings.repeat_delay * 1000);
 #endif
     }
 }

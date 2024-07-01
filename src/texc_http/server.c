@@ -8,6 +8,7 @@
 #include "../texc_utils/path.h"
 #include "../texc_utils/socket.h"
 #include "../texc_utils/thread.h"
+#include "../texc_utils/filelock.h"
 
 #define SERVER_MAX_THREADS 10
 
@@ -17,10 +18,11 @@ Thread *__server_thread;
 Thread *__client_threads[SERVER_MAX_THREADS] = {NULL};
 size_t __client_thread_len = 0;
 
-FILE *__port_file;
+FileLock __port_lock;
 
 void __delete_port_file(void) {
-    fclose(__port_file);
+    filelock_close(&__port_lock);
+
     char *port_path = data_get_port_file();
     remove(port_path);
     free(port_path);
@@ -31,25 +33,28 @@ void __delete_port_file_sig(int sig) {
     exit(1);
 }
 
-void __handle_client(void *data) {
-    SOCKET client = (SOCKET)data;
+THREAD_CALLBACK __handle_client(void *data) {
+    SOCKET *client = (SOCKET *)data;
     char *buffer;
 
-    int size = socket_recv_all(client, &buffer, 5);
+    int size = socket_recv_all(*client, &buffer, 5);
     if (size == -1) {
         LOGGER_WARNING(socket_get_error());
-        socket_close(client);
-        return;
+
+        socket_close(*client);
+        free(client);
+        return THREAD_RETURN;
     }
 
     if (size == -2) {
         Response *response = response_new(504, "Timeout");
-        socket_send(client, response->raw, response->raw_len);
-        socket_close(client);
+        socket_send(*client, response->raw, response->raw_len);
+        socket_close(*client);
+        free(client);
         response_free(response);
 
         LOGGER_WARNING("client socket recv timeout");
-        return;
+        return THREAD_RETURN;
     }
 
     Request *request = request_parse(buffer);
@@ -58,28 +63,35 @@ void __handle_client(void *data) {
     if (request == NULL) {
         Response *response =
             response_new(504, "The request format is not correct");
-        socket_send(client, response->raw, response->raw_len);
+        socket_send(*client, response->raw, response->raw_len);
 
-        socket_close(client);
+        socket_close(*client);
+        free(client);
         response_free(response);
 
         LOGGER_WARNING("client socket recv invalid request format");
-        return;
+        return THREAD_RETURN;
     }
 
     Response *response = __server_handle_api(request);
     request_free(request);
 
-    socket_send(client, response->raw, response->raw_len);
-    socket_close(client);
+    socket_send(*client, response->raw, response->raw_len);
+    socket_close(*client);
+    free(client);
     response_free(response);
+
+    return THREAD_RETURN;
 }
 
-void __server_start(void *_) {
+THREAD_CALLBACK __server_start(void *_) {
     while (1) {
-        SOCKET client = socket_accept(__server_socket);
-        if (client == INVALID_SOCKET) {
+        SOCKET *client = malloc(sizeof(*client));
+        *client = socket_accept(__server_socket);
+
+        if (*client == INVALID_SOCKET) {
             LOGGER_WARNING(socket_get_error());
+            free(client);
             continue;
         }
 
@@ -98,6 +110,8 @@ void __server_start(void *_) {
         __client_threads[__client_thread_len++] =
             thread_create(__handle_client, (void *)client);
     }
+
+    return THREAD_RETURN;
 }
 
 bool server_init(int port, const char *host) {
@@ -121,11 +135,17 @@ bool server_init(int port, const char *host) {
 
     char *port_path = data_get_port_file();
 
-    // Lock the file and prevent deletion while texc is running
-    __port_file = fopen(port_path, "w");
+    __port_lock = filelock_acquire(port_path);
+    if (__port_lock == FILELOCK_ERROR) {
+        free(port_path);
+        return false;
+    }
 
-    fprintf(__port_file, "%d", port);
-    fflush(__port_file);
+    char *port_str;
+    str_format(port_str, "%d", port);
+    filelock_write(__port_lock, port_str);
+    free(port_str);
+
     free(port_path);
 
     // Set up handles to delete port file on exit
@@ -158,8 +178,11 @@ int server_get_active_port() {
         return -1;
     }
 
-    // texc is not running as port file is not locked
-    if (remove(port_path) == 0) {
+    FileLock lock = filelock_acquire(port_path);
+
+    // texc is not running as port lock is not locked
+    if (lock != FILELOCK_ERROR) {
+        filelock_close(&lock);
         free(port_path);
         return -1;
     }

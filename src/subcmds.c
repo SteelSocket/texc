@@ -53,8 +53,6 @@ void __run_in_background() {
         CloseHandle(pi.hProcess);
         CloseHandle(pi.hThread);
     }
-#else
-#error "Not implemented"
 #endif
 }
 
@@ -96,6 +94,9 @@ int subcmd_start_server(Args *args) {
         return 1;
     }
 
+    if (!data_init())
+        return 1;
+
     // Check if the server is able to start
     if (!server_init(port, "127.0.0.1")) {
         if (server_get_active_port() == -1) {
@@ -103,17 +104,17 @@ int subcmd_start_server(Args *args) {
                 "Error: Some other application maybe using port '%d'. "
                 "Please change the port using --port option\n",
                 port);
+            data_free();
             return 1;
         }
 
         printf("Error: texc is already running\n");
+        data_free();
         return 1;
     }
 
-    if (!data_init())
-        return 1;
 
-#ifdef NDEBUG
+#if defined(NDEBUG) && defined(_WIN32)
     if (getenv("TEXC_BACKGROUND") == NULL) {
         __run_in_background();
         return 0;

@@ -1,9 +1,10 @@
 # Info
 
-After running the texc for the first time, a default settings.ini is generated in local appdata folder (On Windows: `Users\AppData\Local\texc\settings.ini`).  
+After running the texc for the first time, a default settings.ini is generated in local appdata folder.  
+On Windows: `%LOCALAPPDATA%\texc\settings.ini`  
+On Linux: `~/.local/share/texc/settings.ini`  
 
 Settings is loaded at the start of `texc`, For any changes in settings.ini to take effect please close and run texc again.  
-
 # Settings
 
 ## [__internel__]

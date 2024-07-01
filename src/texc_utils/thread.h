@@ -6,6 +6,7 @@
 #else
 #define _POSIX_C_SOURCE 200809L
 #include <pthread.h>
+#include <signal.h>
 #endif
 
 #include <stdbool.h>
@@ -30,9 +31,17 @@ typedef struct {
 } Mutex;
 
 // Function to be executed in a separate thread
-typedef void (*ThreadFunction)(void *);
+#ifdef _WIN32
+#define THREAD_CALLBACK DWORD WINAPI
+#define THREAD_RETURN 0
+#else
+#define THREAD_CALLBACK void *
+#define THREAD_RETURN NULL
+#endif
 
-Thread *thread_create(ThreadFunction function, void *argument);
+typedef THREAD_CALLBACK (*ThreadCallback)(void *);
+
+Thread *thread_create(ThreadCallback function, void *argument);
 
 void thread_join(Thread *thread);
 
@@ -50,7 +59,7 @@ void mutex_destroy(Mutex *mutex);
 
 #ifdef UTILS_IMPLEMENTATION
 
-Thread *thread_create(ThreadFunction function, void *argument) {
+Thread *thread_create(ThreadCallback function, void *argument) {
     Thread *thread = malloc(sizeof(Thread));
 
 #ifdef _WIN32

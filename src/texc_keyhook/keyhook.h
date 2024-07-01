@@ -30,16 +30,29 @@ extern bool keyhook_try_expand;
 // The settings of the current match
 extern MatchSettings keyhook_match_settings;
 
+#ifndef _WIN32
+struct _XDisplay;
+typedef struct _XDisplay Display;
+typedef unsigned char KeyCode;
+
+// Is used as the control display by keyhook.c and keyboard.c
+extern Display *__keyhook_display;
+// Is used as a indicator to the keyhook for the start and end
+// of a expand
+extern KeyCode __keyhook_empty_keycode;
+#endif
+
 // ------------------------------------------------------------------
 // keyhook_raw_* functions are implemented in _keyhook_raw.h
 // They are platform specific
 // ------------------------------------------------------------------
 
-
 /**
- * @brief Runs the raw keyhook
+ * @brief Runs the raw keyhook (Blocking)
+ *
+ * @return false on error, true if keyhook_raw_quit is called
  */
-void keyhook_raw_run();
+bool keyhook_raw_run();
 
 /**
  * @brief Closes the raw keyhook
@@ -47,20 +60,26 @@ void keyhook_raw_run();
 void keyhook_raw_quit();
 
 /**
+ * @brief Sets whether the keyhook is expanding or not
+ *
+ * @param toggle Boolean representing if keyhook is expanding
+ */
+void keyhook_set_expanding(bool toggle);
+
+/**
  * @brief Handles the keydown event
  */
-void keyhook_raw_handle_keydown(KeyEvent event);
+void keyhook_handle_keydown(KeyEvent event);
 
 /**
  * @brief Hadnles the keyup event
  */
-void keyhook_raw_handle_keyup(KeyEvent event);
+void keyhook_handle_keyup(KeyEvent event);
 
 /**
  * @brief Handles the key event
  */
 void keyhook_handle_event(KeyEvent event);
-
 
 /**
  * @brief Checks if any of the ExpandTexts matches with the keybuffer

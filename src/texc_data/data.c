@@ -20,7 +20,11 @@ char *data_get_dir() {
         return NULL;
     }
 
+#ifdef _WIN32
     char *path = path_join(data_dir, "texc");
+#else
+    char *path = path_join(data_dir, ".local/share/texc");
+#endif
 
     return path;
 }
@@ -42,8 +46,10 @@ bool data_init() {
 
 #ifdef NDEBUG
     char *log_file = path_join(data_dir, "logs.txt");
-    logger_set_logfile(log_file);
+    logger_init(log_file);
     free(log_file);
+#else
+    logger_init(NULL);
 #endif
 
     char *settings_file = path_join(data_dir, "settings.ini");

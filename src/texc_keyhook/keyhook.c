@@ -29,6 +29,21 @@ bool keyhook_try_expand = false;
 MatchSettings keyhook_match_settings = {0};
 Tag *keyhook_expand_tag = NULL;
 
+void keyhook_set_expanding(bool toggle) {
+#ifdef _WIN32
+    keyhook_is_expanding = toggle;
+#else
+    // Send a empty key event which toggles keyhook_is_expanding 
+    // at keyhook_handle_event()
+    //
+    // In linux each XTestFakeKeyEvent() is processed after the entire expand
+    // is completed. while on windows SendInput() is processed immediately as
+    // it is called. So a empty key event is used to denote the start and end
+    // of a expand in linux.
+    XTestFakeKeyEvent(__keyhook_display, __keyhook_empty_keycode, toggle, 0);
+#endif
+}
+
 bool keyhook_check_for_match(KeyEvent event) {
     int count;
 
@@ -93,7 +108,7 @@ void keyhook_expand_matched() {
         keyboard_press_release(KEYBOARD_NUMLOCK);
     }
 
-    keyhook_is_expanding = true;
+    keyhook_set_expanding(true);
     int delete_count = keybuffer_size - keyhook_match_settings.cursor;
 
     //
@@ -114,17 +129,85 @@ void keyhook_expand_matched() {
         free(last_source);
     }
 
-    keyhook_is_expanding = false;
     keyhook_match_settings = (MatchSettings){0};
     keyhook_expand_tag = NULL;
+    keyhook_set_expanding(false);
+}
+
+void keyhook_handle_keydown(KeyEvent event) {
+    if (event.character == '\b') {
+        if (keyhook_try_undo) {
+            keyhook_try_undo = false;
+            keyhook_reset_undo();
+            keybuffer_pop();
+        }
+
+        if (keyhook_last_source != NULL && !keyhook_is_expanding) {
+            keyhook_try_undo = true;
+            return;
+        }
+        keybuffer_pop();
+    } else {
+        keybuffer_push(event.character);
+        mutex_lock(data.mutex);
+        bool replaced = keyhook_check_for_match(event);
+        mutex_unlock(data.mutex);
+
+        // Resets keybuffer if enter is pressed
+        // without the cursor being at the end
+        if (data.settings.reset_on_enter && !replaced &&
+            event.keycode == KEYBOARD_RETURN && keybuffer_cursor) {
+            keyhook_reset();
+        }
+    }
+
+    if (keyhook_last_source && !keyhook_is_expanding) {
+        keyhook_reset_undo();
+    }
+}
+
+void keyhook_handle_keyup(KeyEvent event) {
+    if (keyhook_is_expanding) {
+        return;
+    }
+
+    if (keyhook_try_expand) {
+        keyhook_try_expand = false;
+
+        mutex_lock(data.mutex);
+        keyhook_expand_matched();
+        mutex_unlock(data.mutex);
+    }
+
+    if (keyhook_try_undo && !keyhook_is_expanding) {
+        keyhook_try_undo = false;
+        keyhook_set_expanding(true);
+
+        keybuffer_pop();
+
+        keyboard_backspace(keyhook_expand_len - 1);
+        keyboard_nomod_type_string(keyhook_last_source);
+        keyhook_reset_undo();
+
+        keyhook_set_expanding(false);
+        return;
+    }
 }
 
 void keyhook_handle_event(KeyEvent event) {
+#ifndef _WIN32
+    // See keyhook_set_expanding() definition for more info
+    if (event.keycode == 0 && !event.character) {
+        keyhook_is_expanding = !keyhook_is_expanding;
+        return;
+    }
+#endif
+
     if (event.character && !event.is_ctrldown) {
         if (event.is_keydown) {
-            keyhook_raw_handle_keydown(event);
+            keyhook_handle_keydown(event);
         } else {
-            keyhook_raw_handle_keyup(event);
+            keyhook_handle_keyup(event);
         }
         return;
     }

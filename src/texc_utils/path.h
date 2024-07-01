@@ -173,13 +173,11 @@ char **path_listdir(const char *path, int *count) {
         return NULL;
     }
 
-    // Remove '.' and '..'
-    readdir(dp);
-    readdir(dp);
-
     char **files = array_create(char *);
 
     while ((entry = readdir(dp))) {
+        if (str_eq(entry->d_name, ".") || str_eq(entry->d_name, ".."))
+            continue;
         char *file_name = strdup(entry->d_name);
         array_resize_add(files, *count, file_name, char *);
     }

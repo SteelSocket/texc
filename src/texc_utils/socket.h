@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdbool.h>
+#include <errno.h>
 
 #ifdef _WIN32
 
@@ -73,7 +74,24 @@ void socket_cleanup() {
 #endif
 }
 
-SOCKET socket_create() { return socket(AF_INET, SOCK_STREAM, 0); }
+SOCKET socket_create() { 
+#ifdef _WIN32
+    return socket(AF_INET, SOCK_STREAM, 0);
+#else
+    SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock == INVALID_SOCKET)
+        return sock;
+    
+    int opt = 1;
+    // Prevent "address already in use" due to TIME_WAIT
+    if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
+        socket_close(sock);
+        return SOCKET_ERROR;
+    }
+
+    return sock;
+#endif
+}
 
 void socket_close(SOCKET socket) {
 #ifdef _WIN32
@@ -187,11 +205,33 @@ int socket_recv_all(SOCKET socket, char **message, int timeout_sec) {
     int message_size = 0;
 
     while (1) {
+        if (timeout_sec > 0) {
+            struct timeval timeout;
+            timeout.tv_sec = timeout_sec;
+            timeout.tv_usec = 0;
+
+            fd_set read_set;
+            FD_ZERO(&read_set);
+            FD_SET(socket, &read_set);
+
+            int read_timeout = select(socket + 1, &read_set, NULL, NULL, &timeout);
+
+            if (read_timeout == -1) {
+                free(*message);
+                return -1;
+            }
+
+            if (read_timeout == 0) {
+                free(*message);
+                return -2;
+            }
+        }
         int size = recv(socket, dummy, 1024, MSG_PEEK);
+
         if (size < 0)
             return size;
 
-        int recv_size = socket_recv(socket, buffer, 1024, 10);
+        int recv_size = socket_recv(socket, buffer, 1024, 0);
 
         message_size += recv_size;
         *message = realloc(*message, sizeof(char) * (message_size + 1));

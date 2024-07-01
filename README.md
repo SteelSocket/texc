@@ -1,10 +1,11 @@
 # texc
 
-A texc expander program written in pure c (currently only supports windows). Inspired by [espanso](https://github.com/espanso/espanso).
+A texc expander program written in pure c for windows and linux. Inspired by [espanso](https://github.com/espanso/espanso).
 
 
 # Features
 - Fast and lightweight
+- Supports both windows and linux
 - [CLI](/docs/info.md#command-line-interface) Support
 - [HTTP Rest Api](/docs/info.md#http-rest-api)
 
@@ -13,6 +14,12 @@ A texc expander program written in pure c (currently only supports windows). Ins
 ```
 cmake -S . -B build
 cmake --build build -DCMAKE_BUILD_TYPE=Release
+```
+
+If you are on linux you need to install the following packages: libx11-dev, libxtst-dev.  
+on debian: 
+```
+sudo apt install libx11-dev libxtst-dev
 ```
 
 # Usage

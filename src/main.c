@@ -1,6 +1,7 @@
 #define UTILS_IMPLEMENTATION
 #include "texc_utils/array.h"
 #include "texc_utils/csv.h"
+#include "texc_utils/filelock.h"
 #include "texc_utils/http_request.h"
 #include "texc_utils/http_response.h"
 #include "texc_utils/logger.h"

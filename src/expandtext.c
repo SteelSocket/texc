@@ -113,12 +113,12 @@ char *expandtext_delete(const char *ident, ETxIdentifier by) {
     }
     free(rows);
 
-    bool deleted = data_sql_delete(condition);
+    int deleted = data_sql_delete(condition);
     free(condition);
 
     data_io_save();
     if (!deleted) {
-        return strdup("texc INTERNAL SQL ERROR see logs.txt");
+        return strdup("No text-expansion with the given indentifier was found");
     }
 
     if (by == ETx_BY_MATCH)

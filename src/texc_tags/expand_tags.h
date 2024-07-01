@@ -11,14 +11,14 @@ bool etag_press_char(void *data, void *settings) {
     ExpandSettings *ex_settings = (ExpandSettings *)settings;
     ex_settings->typed_count++;
 
-    int keycode = keyboard_keycode_from_char(*((char *)data));
+    int keycode = keyboard_keycode_from_char((char *)data);
     keyboard_press(keycode);
 
     return true;
 }
 
 void etag_release_char(void *data, void *settings) {
-    int keycode = keyboard_keycode_from_char(*((char *)data));
+    int keycode = keyboard_keycode_from_char((char *)data);
     keyboard_release(keycode);
 }
 
