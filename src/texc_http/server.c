@@ -86,12 +86,10 @@ THREAD_CALLBACK __handle_client(void *data) {
 
 THREAD_CALLBACK __server_start(void *_) {
     while (1) {
-        SOCKET *client = malloc(sizeof(*client));
-        *client = socket_accept(__server_socket);
+        SOCKET sock = socket_accept(__server_socket);
 
-        if (*client == INVALID_SOCKET) {
+        if (sock == INVALID_SOCKET) {
             LOGGER_WARNING(socket_get_error());
-            free(client);
             continue;
         }
 
@@ -106,6 +104,9 @@ THREAD_CALLBACK __server_start(void *_) {
             }
             __client_thread_len = nsize;
         }
+
+        SOCKET *client = malloc(sizeof(*client));
+        *client = sock;
 
         __client_threads[__client_thread_len++] =
             thread_create(__handle_client, (void *)client);
