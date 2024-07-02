@@ -29,10 +29,6 @@ To start the texc app run,
 ```
 texc --port {port}
 ```
-or
-```
-texc server --port {port}
-```
 
 ## Adding a Text Expansion
 

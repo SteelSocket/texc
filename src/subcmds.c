@@ -94,28 +94,29 @@ int subcmd_start_server(Args *args) {
         return 1;
     }
 
+    if (server_get_active_port() != -1) {
+        printf("Error: texc is already running");
+        return 1;
+    }
+
     if (!data_init())
         return 1;
 
     // Check if the server is able to start
     if (!server_init(port, "127.0.0.1")) {
-        if (server_get_active_port() == -1) {
-            printf(
-                "Error: Some other application maybe using port '%d'. "
-                "Please change the port using --port option\n",
-                port);
-            data_free();
-            return 1;
-        }
-
-        printf("Error: texc is already running\n");
-        data_free();
+        LOGGER_FORMAT_LOG(LOGGER_ERROR,
+                          "Error: Failed to initialize server. Some other "
+                          "application maybe using port '%d'. "
+                          "Please change the port using --port option",
+                          port);
+        data_free(false);
         return 1;
     }
 
-
 #if defined(NDEBUG) && defined(_WIN32)
-    if (getenv("TEXC_BACKGROUND") == NULL) {
+    if (getenv("TEXC_BACKGROUND") == NULL && !argparse_flag_found(args, "-fg")) {
+        LOGGER_INFO("(windows) Running texc in the background");
+        data_free(false);
         __run_in_background();
         return 0;
     }
@@ -126,7 +127,7 @@ int subcmd_start_server(Args *args) {
     keyhook_run();  // Exits When keyhook_raw_quit() is called
 
     server_stop();
-    data_free();
+    data_free(true);
 
     return 0;
 }

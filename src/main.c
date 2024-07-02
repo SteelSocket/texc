@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
     const char *cmd_name = args->parser->name;
     int exit_code;
 
-    if (str_eq(cmd_name, "texc") || str_eq(cmd_name, "server")) {
+    if (str_eq(cmd_name, "texc")) {
         exit_code = subcmd_start_server(args);
     } else if (str_eq(cmd_name, "add")) {
         exit_code = subcmd_add_exptexts(args);

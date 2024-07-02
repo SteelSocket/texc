@@ -85,9 +85,11 @@ bool data_init() {
     return true;
 }
 
-void data_free() {
+void data_free(bool save) {
     mutex_lock(data.mutex);
-    data_io_save();
+
+    if (save)
+        data_io_save();
 
     int iter_count = 0;
     int i = 0;

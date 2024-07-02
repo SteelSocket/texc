@@ -54,5 +54,7 @@ bool data_init();
 
 /**
  * @brief Frees all allocated data and saves all the ExpandTexts
+ *
+ * @param save whether to save the data or not
  */
-void data_free();
+void data_free(bool save);

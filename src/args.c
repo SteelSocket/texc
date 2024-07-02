@@ -3,23 +3,6 @@
 #include "texc_utils/array.h"
 
 // ---------------------------------------------------------
-//                    Server Command
-// ---------------------------------------------------------
-
-Option __server_opts[] = {{
-    .flags = "-p,--port",
-    .help = "Port of the api server",
-    .has_value = true,
-    .default_value = "8000",
-    .is_required = false,
-}};
-
-ArgParser *__args_server() {
-    return argparse_init("server", "Starts the texc server", __server_opts,
-                         array_len(__server_opts), NULL, 0);
-}
-
-// ---------------------------------------------------------
 //                      Add Command
 // ---------------------------------------------------------
 
@@ -113,7 +96,7 @@ ArgParser *__args_list() {
 Option __config_opts[] = {
     {
         .flags = "-i,--id",
-        .help = "Sets the config by id",
+        .help = "Sets config by id",
         .has_value = false,
         .is_required = false,
     },
@@ -159,6 +142,14 @@ Option __default_opts[] = {
         .has_value = false,
         .is_required = false,
     },
+#ifdef _WIN32
+    {
+        .flags = "-fg,--foreground",
+        .help = "Run texc in the foreground",
+        .has_value = false,
+        .is_required = false,
+    },
+#endif
 };
 
 ArgParser *__args_default() {
@@ -169,7 +160,6 @@ ArgParser *__args_default() {
 ArgParser *args_init() {
     ArgParser *texc_parser = __args_default();
 
-    argparse_add_subparser(texc_parser, __args_server());
     argparse_add_subparser(texc_parser, __args_close());
     argparse_add_subparser(texc_parser, __args_add());
     argparse_add_subparser(texc_parser, __args_remove());
