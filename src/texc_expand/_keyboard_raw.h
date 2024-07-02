@@ -6,7 +6,7 @@
 
 #ifdef _WIN32
 
-#include <Windows.h>
+#include <windows.h>
 #include <winuser.h>
 
 INPUT __win_create_input(int wscan, DWORD flags) {
@@ -21,13 +21,13 @@ INPUT __win_create_input(int wscan, DWORD flags) {
     return input;
 }
 
-void _keyboard_raw_press(int scan_code) {
+void _keyboard_raw_press(KEYBOARD_RAW_KEYCODE scan_code) {
     INPUT input =
         __win_create_input(scan_code, KEYEVENTF_SCANCODE);
     SendInput(1, &input, sizeof(INPUT));
 }
 
-void _keyboard_raw_release(int scan_code) {
+void _keyboard_raw_release(KEYBOARD_RAW_KEYCODE scan_code) {
     INPUT input = __win_create_input(scan_code,
                                      KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP);
     SendInput(1, &input, sizeof(INPUT));
@@ -51,12 +51,12 @@ void _keyboard_raw_type(char c) {
 // Inlcude keyhook.h for Display *__keyhook_display;
 #include "../texc_keyhook/keyhook.h"
 
-void _keyboard_raw_press(KeyCode key_code) {
+void _keyboard_raw_press(KEYBOARD_RAW_KEYCODE key_code) {
     XTestFakeKeyEvent(__keyhook_display, key_code, True, 0);
     XFlush(__keyhook_display);
 }
 
-void _keyboard_raw_release(KeyCode key_code) {
+void _keyboard_raw_release(KEYBOARD_RAW_KEYCODE key_code) {
     XTestFakeKeyEvent(__keyhook_display, key_code, False, 0);
     XFlush(__keyhook_display);
 }
