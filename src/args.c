@@ -84,9 +84,24 @@ ArgParser *__args_close() {
 //                      List Command
 // ---------------------------------------------------------
 
+Option __list_opts[] = {
+    {
+        .flags = "-c,--columns",
+        .help = "The columns to fetch from sql table",
+        .has_value = true,
+        .is_required = false,
+    },
+    {
+        .flags = "-w,--where",
+        .help = "The sql condition for the fetch",
+        .has_value = true,
+        .is_required = false,
+    },
+};
+
 ArgParser *__args_list() {
-    return argparse_init("list", "Prints all the text-expansions saved", NULL,
-                         0, NULL, 0);
+    return argparse_init("list", "Display text-expansions in texc as csv", __list_opts,
+                            array_len(__list_opts), NULL, 0);
 }
 
 // ---------------------------------------------------------

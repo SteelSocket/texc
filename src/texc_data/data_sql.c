@@ -118,9 +118,9 @@ char ***data_sql_get_raw(const char *columns, const char *condition,
         columns = "match, expand, id, enabled, \"group\"";
 
     if (condition == NULL) {
-        str_format(select_sql, "SELECT %s FROM expandtexts", columns);
+        str_format(select_sql, "SELECT %s FROM expandtexts ORDER BY \"group\"", columns);
     } else {
-        str_format(select_sql, "SELECT %s FROM expandtexts WHERE %s", columns,
+        str_format(select_sql, "SELECT %s FROM expandtexts WHERE %s ORDER BY \"group\"", columns,
                    condition);
     }
 

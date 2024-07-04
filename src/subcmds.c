@@ -114,7 +114,8 @@ int subcmd_start_server(Args *args) {
     }
 
 #if defined(NDEBUG) && defined(_WIN32)
-    if (getenv("TEXC_BACKGROUND") == NULL && !argparse_flag_found(args, "-fg")) {
+    if (getenv("TEXC_BACKGROUND") == NULL &&
+        !argparse_flag_found(args, "-fg")) {
         LOGGER_INFO("(windows) Running texc in the background");
         data_free(false);
         __run_in_background();
@@ -215,13 +216,38 @@ int subcmd_list_exptexts(Args *args) {
     int port;
     __check_server_running(port);
 
-    char *body = __execute_request(port, "/list");
+    char *url;
+    bool question_inserted = false;
+    str_mcpy(url, "/list");
+
+    if (argparse_flag_found(args, "--columns")) {
+        char *url_columns = url_encode(argparse_flag_get(args, "--columns"));
+        str_rformat(url, "?columns=%s", url_columns);
+        question_inserted = true;
+        free(url_columns);
+    }
+
+    if (argparse_flag_found(args, "--where")) {
+        char *url_where = url_encode(argparse_flag_get(args, "--where"));
+
+        if (!question_inserted) {
+            str_rformat(url, "?condition=%s", url_where);
+            question_inserted = true;
+        } else {
+            str_rformat(url, "&condition=%s", url_where);
+        }
+        free(url_where);
+    }
+
+    char *body = __execute_request(port, url);
+    free(url);
+
     if (body == NULL) {
         return 1;
     }
     if (str_count(body, '\n') == 1) {
         free(body);
-        printf("Empty! no text-expansions in texc\n");
+        printf("Empty!\n");
         return 0;
     }
 
