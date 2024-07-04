@@ -7,7 +7,7 @@
 
 /**
  * @brief Initializes the server
- * server_init() may fail if, 
+ * server_init() may fail if,
  * 1. There exists a socket server on the same port and host.
  * 2. Texc is already running on the same port
  *

@@ -244,7 +244,6 @@ Tag *tag_parse(const char *source, const char *tag_name) {
     return __tag_parse(max_len, source, tag_name);
 }
 
-
 // ---------------------------------------------------------
 
 void tag_free(Tag *tag) {

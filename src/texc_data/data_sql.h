@@ -58,4 +58,3 @@ int data_sql_missing_int(const char *column);
  * @return The number of rows deleted or -1 on error
  */
 int data_sql_delete(const char *condition);
-

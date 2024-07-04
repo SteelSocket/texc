@@ -112,8 +112,8 @@ void __logger_log(const char *message, const char *file_name, int line_no,
                file_name, line_no, func_name, message);
 
     if (__log_file != NULL)
-        fprintf(__log_file, "%s: [%s] %s:%d (%s) -> \"%s\"\n", log_level, log_time,
-                file_name, line_no, func_name, message);
+        fprintf(__log_file, "%s: [%s] %s:%d (%s) -> \"%s\"\n", log_level,
+                log_time, file_name, line_no, func_name, message);
 
     fflush(stdout);
 }

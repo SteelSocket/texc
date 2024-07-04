@@ -59,7 +59,6 @@ FileLock filelock_acquire(const char *file_path) {
     return lock;
 }
 
-
 void filelock_write(FileLock lock, const char *str) {
 #ifdef _WIN32
     fprintf(lock, "%s", str);

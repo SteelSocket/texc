@@ -22,14 +22,13 @@ INPUT __win_create_input(int wscan, DWORD flags) {
 }
 
 void _keyboard_raw_press(KEYBOARD_RAW_KEYCODE scan_code) {
-    INPUT input =
-        __win_create_input(scan_code, KEYEVENTF_SCANCODE);
+    INPUT input = __win_create_input(scan_code, KEYEVENTF_SCANCODE);
     SendInput(1, &input, sizeof(INPUT));
 }
 
 void _keyboard_raw_release(KEYBOARD_RAW_KEYCODE scan_code) {
-    INPUT input = __win_create_input(scan_code,
-                                     KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP);
+    INPUT input =
+        __win_create_input(scan_code, KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP);
     SendInput(1, &input, sizeof(INPUT));
 }
 

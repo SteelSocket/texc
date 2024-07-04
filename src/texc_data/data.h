@@ -37,9 +37,7 @@ extern Data data;
  */
 char *data_get_dir();
 
-
-/**
- * @brief Gets the path to server port file
+/* @brief Gets the path to server port file
  *
  * @return The path to the port file
  */

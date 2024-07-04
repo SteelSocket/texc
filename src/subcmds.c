@@ -90,12 +90,12 @@ int subcmd_start_server(Args *args) {
     int port = atoi(argparse_flag_get(args, "--port"));
     if (port <= 0) {
         argparse_print_help(args->parser);
-        printf("Error: Invalid port number. Port number must be above 0");
+        printf("Error: Invalid port number. Port number must be above 0\n");
         return 1;
     }
 
     if (server_get_active_port() != -1) {
-        printf("Error: texc is already running");
+        printf("Error: texc is already running\n");
         return 1;
     }
 

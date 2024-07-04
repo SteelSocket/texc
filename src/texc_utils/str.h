@@ -34,13 +34,6 @@
         strcpy(string, src);                               \
     } while (0)
 
-#define str_rcat(string, src)                                                \
-    do {                                                                     \
-        string = realloc(string,                                             \
-                         (strlen(string) + strlen(src) + 1) * sizeof(char)); \
-        strcat(string, src);                                                 \
-    } while (0)
-
 int str_count(const char *source, char c);
 
 void str_strip(char *source, const char *delimeter);

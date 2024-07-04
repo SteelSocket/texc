@@ -31,6 +31,7 @@ MatchSettings match_text(Tag *match);
  * to filter out the correct matches in keyhook.c.
  *
  * @param match The source string of the match tag
- * @return string containing all the characters by which the match is initialized
+ * @return string containing all the characters by which the match is
+ * initialized
  */
 char *match_get_initializer(const char *match);

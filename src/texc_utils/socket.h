@@ -1,7 +1,7 @@
 #pragma once
 
-#include <stdbool.h>
 #include <errno.h>
+#include <stdbool.h>
 
 #ifdef _WIN32
 
@@ -74,14 +74,14 @@ void socket_cleanup() {
 #endif
 }
 
-SOCKET socket_create() { 
+SOCKET socket_create() {
 #ifdef _WIN32
     return socket(AF_INET, SOCK_STREAM, 0);
 #else
     SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock == INVALID_SOCKET)
         return sock;
-    
+
     int opt = 1;
     // Prevent "address already in use" due to TIME_WAIT
     if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
@@ -214,7 +214,8 @@ int socket_recv_all(SOCKET socket, char **message, int timeout_sec) {
             FD_ZERO(&read_set);
             FD_SET(socket, &read_set);
 
-            int read_timeout = select(socket + 1, &read_set, NULL, NULL, &timeout);
+            int read_timeout =
+                select(socket + 1, &read_set, NULL, NULL, &timeout);
 
             if (read_timeout == -1) {
                 free(*message);

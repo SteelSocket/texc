@@ -101,12 +101,10 @@ void keyhook_raw_quit() {
 
 #else
 
-
-
+#include <X11/XKBlib.h>
 #include <X11/Xlib.h>
 #include <X11/Xproto.h>
 #include <X11/Xutil.h>
-#include <X11/XKBlib.h>
 #include <X11/extensions/XTest.h>
 #include <X11/extensions/record.h>
 #include <X11/keysym.h>
@@ -136,7 +134,8 @@ KeySym __to_ascii(char (*buffer)[255], xEvent *event) {
 
     int _;
     // Makes sure XLookupString works if there is MappingNotify event
-    KeySym *map = XGetKeyboardMapping(__keyhook_display, key_event.keycode, 1, &_);
+    KeySym *map =
+        XGetKeyboardMapping(__keyhook_display, key_event.keycode, 1, &_);
     XFree(map);
 
     KeySym sym;
@@ -169,10 +168,8 @@ void keyhook_callback(XPointer arg, XRecordInterceptData *data) {
         return;
     }
 
-
     char buffer[255] = {0};
     KeySym sym = __to_ascii(&buffer, event);
-
 
     KeyEvent key_event = {
         .character = (*buffer),
@@ -191,8 +188,7 @@ int __get_empty_keycode(Display *dpy) {
 
     KeySym *syms = NULL;
     int sym_count = 0;
-    syms = XGetKeyboardMapping(dpy, low, high - low,
-                                  &sym_count);
+    syms = XGetKeyboardMapping(dpy, low, high - low, &sym_count);
 
     for (int i = low; i <= high; i++) {
         for (int j = 0; j < sym_count; j++) {
@@ -213,7 +209,7 @@ bool keyhook_raw_run() {
     __keyhook_display = XOpenDisplay(NULL);
     int _;
 
-    if (!XkbQueryExtension(__keyhook_display, &_, &_, &_, &_, &_)){
+    if (!XkbQueryExtension(__keyhook_display, &_, &_, &_, &_, &_)) {
         LOGGER_ERROR("XKB extension not installed");
         XCloseDisplay(__keyhook_display);
         return false;

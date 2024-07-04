@@ -4,11 +4,11 @@
 
 #include "../texc_data/data.h"
 
+#include "../texc_utils/filelock.h"
 #include "../texc_utils/logger.h"
 #include "../texc_utils/path.h"
 #include "../texc_utils/socket.h"
 #include "../texc_utils/thread.h"
-#include "../texc_utils/filelock.h"
 
 #define SERVER_MAX_THREADS 10
 

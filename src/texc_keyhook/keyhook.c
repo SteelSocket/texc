@@ -33,7 +33,7 @@ void keyhook_set_expanding(bool toggle) {
 #ifdef _WIN32
     keyhook_is_expanding = toggle;
 #else
-    // Send a empty key event which toggles keyhook_is_expanding 
+    // Send a empty key event which toggles keyhook_is_expanding
     // at keyhook_handle_event()
     //
     // In linux each XTestFakeKeyEvent() is processed after the entire expand

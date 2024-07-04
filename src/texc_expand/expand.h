@@ -13,7 +13,7 @@ typedef struct {
 } ExpandSettings;
 
 /**
- * @brief Deletes the match and types the expand tag 
+ * @brief Deletes the match and types the expand tag
  *
  * @param delete_len The length of the match text
  * @param tag The expand tag

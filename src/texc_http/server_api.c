@@ -95,15 +95,16 @@ Response *__handle_remove(Request *request) {
 }
 
 int __auth_select_only(void *arg, int action, const char *d1, const char *d2,
-                  const char *d3, const char *d4) {
-    if (action == SQLITE_SELECT || action == SQLITE_READ || action == SQLITE_FUNCTION)
+                       const char *d3, const char *d4) {
+    if (action == SQLITE_SELECT || action == SQLITE_READ ||
+        action == SQLITE_FUNCTION)
         return SQLITE_OK;
     return SQLITE_DENY;
 }
 
 Response *__handle_list(Request *request) {
     mutex_lock(data.mutex);
-    
+
     sqlite3_set_authorizer(data.db, __auth_select_only, NULL);
 
     const char *columns = request_get_query(request, "columns");
@@ -111,7 +112,6 @@ Response *__handle_list(Request *request) {
 
     char *csv_string = data_io_expandtexts_as_csv(columns, cond);
     sqlite3_set_authorizer(data.db, NULL, NULL);
-
 
     if (csv_string == NULL) {
         const char *error = sqlite3_errmsg(data.db);

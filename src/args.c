@@ -100,8 +100,8 @@ Option __list_opts[] = {
 };
 
 ArgParser *__args_list() {
-    return argparse_init("list", "Display text expansions in texc as csv", __list_opts,
-                            array_len(__list_opts), NULL, 0);
+    return argparse_init("list", "Display text expansions in texc as csv",
+                         __list_opts, array_len(__list_opts), NULL, 0);
 }
 
 // ---------------------------------------------------------

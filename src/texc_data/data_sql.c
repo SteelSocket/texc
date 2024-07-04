@@ -118,10 +118,12 @@ char ***data_sql_get_raw(const char *columns, const char *condition,
         columns = "match, expand, id, enabled, \"group\"";
 
     if (condition == NULL) {
-        str_format(select_sql, "SELECT %s FROM expandtexts ORDER BY \"group\"", columns);
+        str_format(select_sql, "SELECT %s FROM expandtexts ORDER BY \"group\"",
+                   columns);
     } else {
-        str_format(select_sql, "SELECT %s FROM expandtexts WHERE %s ORDER BY \"group\"", columns,
-                   condition);
+        str_format(select_sql,
+                   "SELECT %s FROM expandtexts WHERE %s ORDER BY \"group\"",
+                   columns, condition);
     }
 
     int rc = sqlite3_prepare_v2(data.db, select_sql, -1, &stmt, NULL);
