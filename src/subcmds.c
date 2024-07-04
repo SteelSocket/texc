@@ -151,7 +151,7 @@ int subcmd_add_exptexts(Args *args) {
     int port;
     __check_server_running(port);
 
-    char *match = url_encode(argparse_positional_get(args, "text"));
+    char *match = url_encode(argparse_positional_get(args, "match"));
     char *expand = url_encode(argparse_positional_get(args, "expand"));
     char *enabled = url_encode(argparse_flag_get(args, "--enable"));
     char *group = url_encode(argparse_flag_get(args, "--group"));
@@ -160,7 +160,7 @@ int subcmd_add_exptexts(Args *args) {
     str_format(url, "/add?match=%s&expand=%s&enabled=%s&group=%s", match,
                expand, enabled, group);
 
-    printf("Adding %s -> %s\n", argparse_positional_get(args, "text"),
+    printf("Adding %s -> %s\n", argparse_positional_get(args, "match"),
            argparse_positional_get(args, "expand"));
 
     char *body = __execute_request(port, url);
@@ -190,7 +190,7 @@ int subcmd_remove_exptexts(Args *args) {
 
     const char *identifier = argparse_positional_get(args, "identifier");
     bool is_valid_iden =
-        __append_identifier(args, &url, identifier, "Removing text-expansions");
+        __append_identifier(args, &url, identifier, "Removing text expansions");
 
     if (!is_valid_iden) {
         // Currently this case will not occur
@@ -265,7 +265,7 @@ int subcmd_config_exptexts(Args *args) {
 
     const char *identifier = argparse_positional_get(args, "identifier");
     bool is_valid_iden = __append_identifier(args, &url, identifier,
-                                             "Configuring text-expansions");
+                                             "Configuring text expansions");
 
     if (!is_valid_iden) {
         // Currently this case will not occur

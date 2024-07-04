@@ -3,7 +3,7 @@ http://127.0.0.1:{port}/list
 
 # Usage
 
-Returns all text-expansion in csv format. See [sql.md](../sql.md) for all the columns
+Returns all text expansion in csv format. See [sql.md](../sql.md) for all the columns
 
 # Parameters
 

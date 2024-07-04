@@ -15,37 +15,37 @@ The command line interface is documented in the `-h, --help` flags. CLI uses the
 
 ## Identifiers
 
-Identifiers are used to delete, modifiy or list text-expansions. 
+Identifiers are used to delete, modifiy or list text expansions. 
 
 ### match
-- It is the contents of the `text` section
+- The contents of the `match` section in a text expansion
 - There can be multiple matches. The first match loaded will be expanded.
-- Example, to delete a text-expansion do: `texc remove {text}` 
+- Example, to delete a text expansion do: `texc remove {match}` 
 
 ### id
-- It is a unique positive integer assigned to text-expansions
-- Example, to delete a text-expansion do: `text remove --id {id}` 
+- It is a unique positive integer assigned to text expansions
+- Example, to delete a text expansion do: `texc remove --id {id}` 
 
 ### group
-- All text-expansions are categorized into groups (The default is `all`)
-- We can add a text-expansion to a group by doing: `texc add {text} {expand} --group {group}`
-- The specified text-expansion will be saved in matches/{group}.csv
-- Example, to disable all text-expansion of a specific group do: `text config --enable false --group {group}` 
+- All text expansions are categorized into groups (The default is `all`)
+- We can add a text expansion to a group by doing: `texc add {match} {expand} --group {group}`
+- The specified text expansion will be saved in matches/{group}.csv
+- Example, to disable all text expansion of a specific group do: `texc config --enable false --group {group}` 
 
 ## Enable
 
-A text-expansion is only active if the enable attribute is set to true. Can be set using `config` sub command.
+A text expansion is only active if the enable attribute is set to true. Can be set using `config` sub command.
 
 ## Undo
 
-Undo is possible by pressing backspace after the expansion. But undo is disabled if non-undoable tags are used in either `text` section or `expand` section
+Undo is possible by pressing backspace after the expansion. But undo is disabled if non-undoable tags are used in either `match` section or `expand` section
 
 ## Tags
 
 See [tags.md](tags.md) for all the tags available
 <hr>
 
-texc allows the usage of special tags inside `text` or `expand` sections.
+texc allows the usage of special tags inside `match` or `expand` sections.
 
 For example we can do,
 ```
@@ -64,7 +64,7 @@ texc add "<tcase>hello</tcase>" word
 Which will toggle case sensitivity to be off.  
 
 ## How to use `<` and `>`
-To use the characters `<` and `>` in the text-expansion do `<<` and `>>` which will be converted into `<` and `>`. So for example `<<enter>>` will type `<enter>` instead of pressing enter 
+To use the characters `<` and `>` in the text expansion do `<<` and `>>` which will be converted into `<` and `>`. So for example `<<enter>>` will type `<enter>` instead of pressing enter 
 
 ## Difference between `"a"` and `<a>`
 In the `expand` section we can use tags which contain lower case alpha numberic characters.  

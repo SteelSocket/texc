@@ -16,7 +16,7 @@ Option __add_opts[] = {
     },
     {
         .flags = "-g,--group",
-        .help = "Set the text-expansion group",
+        .help = "Set the text expansion group",
         .has_value = true,
         .default_value = "all",
         .is_required = false,
@@ -25,7 +25,7 @@ Option __add_opts[] = {
 
 Positional __add_pos[] = {
     {
-        .name = "text",
+        .name = "match",
         .required = true,
     },
     {
@@ -35,7 +35,7 @@ Positional __add_pos[] = {
 };
 
 ArgParser *__args_add() {
-    return argparse_init("add", "Adds a text-expansion to texc", __add_opts,
+    return argparse_init("add", "Adds a text expansion to texc", __add_opts,
                          array_len(__add_opts), __add_pos,
                          array_len(__add_pos));
 }
@@ -52,13 +52,13 @@ Positional __remove_pos[] = {{
 Option __remove_opts[] = {
     {
         .flags = "-i,--id",
-        .help = "Removes the text-expansion by id",
+        .help = "Removes the text expansion by id",
         .has_value = false,
         .is_required = false,
     },
     {
         .flags = "-g,--group",
-        .help = "Removes the text-expansion by group",
+        .help = "Removes the text expansion by group",
         .has_value = false,
         .is_required = false,
     },
@@ -66,7 +66,7 @@ Option __remove_opts[] = {
 
 ArgParser *__args_remove() {
     return argparse_init("remove",
-                         "Removes a text-expansion from the expand list",
+                         "Removes a text expansion from the expand list",
                          __remove_opts, array_len(__remove_opts), __remove_pos,
                          array_len(__remove_pos));
 }
@@ -100,7 +100,7 @@ Option __list_opts[] = {
 };
 
 ArgParser *__args_list() {
-    return argparse_init("list", "Display text-expansions in texc as csv", __list_opts,
+    return argparse_init("list", "Display text expansions in texc as csv", __list_opts,
                             array_len(__list_opts), NULL, 0);
 }
 
@@ -123,7 +123,7 @@ Option __config_opts[] = {
     },
     {
         .flags = "-e,--enable",
-        .help = "Enables/Disables the text-expansion",
+        .help = "Enables/Disables the text expansion",
         .has_value = true,
         .is_required = false,
     },
@@ -135,7 +135,7 @@ Positional __config_pos[] = {{
 }};
 
 ArgParser *__args_config() {
-    return argparse_init("config", "Modifies the config of a text-expansion",
+    return argparse_init("config", "Modifies the config of a text expansion",
                          __config_opts, array_len(__config_opts), __config_pos,
                          array_len(__config_pos));
 }

@@ -118,7 +118,7 @@ char *expandtext_delete(const char *ident, ETxIdentifier by) {
 
     data_io_save();
     if (!deleted) {
-        return strdup("No text-expansion with the given indentifier was found");
+        return strdup("No text expansion with the given indentifier was found");
     }
 
     if (by == ETx_BY_MATCH)
@@ -183,15 +183,15 @@ char *expandtext_config(const char *ident, ETxIdentifier by, Request *request) {
     if (sqlite3_changes(data.db) <= 0) {
         if (by == ETx_BY_MATCH) {
             str_format(error,
-                       "No text-expansion with given match \"%s\" is found",
+                       "No text expansion with given match \"%s\" is found",
                        ident);
         } else if (by == ETx_BY_ID) {
-            str_format(error, "No text-expansion with given id \"%s\" is found",
+            str_format(error, "No text expansion with given id \"%s\" is found",
                        ident);
         } else {
             str_format(
                 error,
-                "No text-expansion with given identifier \"%s\" is found",
+                "No text expansion with given identifier \"%s\" is found",
                 ident);
         }
         return error;

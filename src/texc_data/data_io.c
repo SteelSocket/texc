@@ -69,7 +69,7 @@ void data_io_save_group(const char *group) {
         fprintf(file, "%s", csv_string);
         free(csv_string);
         LOGGER_FORMAT_LOG(LOGGER_INFO,
-                          "text-expansions saved to \"%s.csv\" successfully",
+                          "text expansions saved to \"%s.csv\" successfully",
                           group);
     }
 
@@ -189,7 +189,7 @@ void __load_group(const char *group) {
     }
 
     LOGGER_FORMAT_LOG(LOGGER_INFO,
-                      "Loaded text-expansions from \"%s.csv\" successfully",
+                      "Loaded text expansions from \"%s.csv\" successfully",
                       group);
 }
 

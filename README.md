@@ -32,9 +32,9 @@ texc --port {port}
 
 ## Adding a Text Expansion
 
-To add a text-expansion do,
+To add a text expansion do,
 ```
-texc add {text} {expanded}
+texc add {match} {expanded}
 ```
 
 Example:
@@ -44,12 +44,12 @@ texc add hello world
 Now if we type 'hello' it will be replaced by 'world'
 
 ## Removing a Text Expansion
-To remove a existing text-expansion do,
+To remove a existing text expansion do,
 ```
-texc remove {text}
+texc remove {match}
 ```
 
-For example if we want to remove the 'hello' text-expansion we do,
+For example if we want to remove the 'hello' text expansion we do,
 ```
 texc remove hello
 ```
