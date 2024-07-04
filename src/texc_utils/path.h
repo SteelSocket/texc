@@ -153,13 +153,12 @@ char **path_listdir(const char *path, int *count) {
         return NULL;
     }
 
-    // Remove '.' and '..'
-    FindNextFile(h_find, &find_data);
-    FindNextFile(h_find, &find_data);
-
     char **files = array_create(char *);
 
     do {
+        if (str_eq(find_data.cFileName, ".") || str_eq(find_data.cFileName, ".."))
+            continue;
+
         char *file_name = strdup(find_data.cFileName);
         array_resize_add(files, *count, file_name, char *);
     } while (FindNextFile(h_find, &find_data) != 0);

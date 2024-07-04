@@ -207,7 +207,7 @@ Tag *__tag_parse(size_t max_len, const char *raw_str, const char *tag_name) {
         }
         str_strip(tag_name, "\n\t\r");
 
-        if (*tag_name != '\0' && *tag_name != '/') {
+        if (*tag_name != '\0') {
             if (save == NULL) {
                 tag_free(tag);
                 return NULL;
