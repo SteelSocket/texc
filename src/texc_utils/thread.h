@@ -6,7 +6,6 @@
 #else
 #define _POSIX_C_SOURCE 200809L
 #include <pthread.h>
-#include <signal.h>
 #endif
 
 #include <stdbool.h>
@@ -14,12 +13,16 @@
 #include <stdlib.h>
 
 // Thread data structure
+struct __ThreadData;
+
 typedef struct {
 #ifdef _WIN32
     HANDLE handle;
 #else
     pthread_t handle;
 #endif
+    struct __ThreadData *__data;
+    bool __is_running;
 } Thread;
 
 typedef struct {
@@ -31,15 +34,7 @@ typedef struct {
 } Mutex;
 
 // Function to be executed in a separate thread
-#ifdef _WIN32
-#define THREAD_CALLBACK DWORD WINAPI
-#define THREAD_RETURN 0
-#else
-#define THREAD_CALLBACK void *
-#define THREAD_RETURN NULL
-#endif
-
-typedef THREAD_CALLBACK (*ThreadCallback)(void *);
+typedef void (*ThreadCallback)(void *);
 
 Thread *thread_create(ThreadCallback function, void *argument);
 
@@ -59,14 +54,50 @@ void mutex_destroy(Mutex *mutex);
 
 #ifdef UTILS_IMPLEMENTATION
 
+#ifdef _WIN32
+#define __THREAD_CALLBACK DWORD WINAPI
+#define __THREAD_RETURN 0
+#else
+#define __THREAD_CALLBACK void *
+#define __THREAD_RETURN NULL
+#endif
+
+typedef struct __ThreadData {
+    Thread *thread;
+    ThreadCallback callback;
+    void *data;
+} __ThreadData;
+
+__THREAD_CALLBACK
+__thread_callback_wrapper(void *thread_data) {
+    __ThreadData *data = (__ThreadData *)thread_data;
+    data->thread->__is_running = true;
+
+    data->callback(data->data);
+
+    data->thread->__is_running = false;
+    data->thread->__data = NULL;
+    free(data);
+    return __THREAD_RETURN;
+}
+
 Thread *thread_create(ThreadCallback function, void *argument) {
     Thread *thread = malloc(sizeof(Thread));
+    thread->__is_running = false;
+
+    __ThreadData *data = malloc(sizeof(__ThreadData));
+    data->thread = thread;
+    data->callback = function;
+    data->data = argument;
+
+    thread->__data = data;
 
 #ifdef _WIN32
-    thread->handle = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)function,
-                                  argument, 0, NULL);
+    thread->handle =
+        CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)__thread_callback_wrapper,
+                     data, 0, NULL);
 #else
-    pthread_create(&thread->handle, NULL, function, argument);
+    pthread_create(&thread->handle, NULL, __thread_callback_wrapper, data);
 #endif
 
     return thread;
@@ -82,15 +113,7 @@ void thread_join(Thread *thread) {
     free(thread);
 }
 
-bool thread_is_running(Thread *thread) {
-#ifdef _WIN32
-    DWORD exitCode;
-    GetExitCodeThread(thread->handle, &exitCode);
-    return exitCode == STILL_ACTIVE;
-#else
-    return pthread_kill(thread->handle, 0) == 0;
-#endif
-}
+bool thread_is_running(Thread *thread) { return thread->__is_running; }
 
 bool thread_terminate(Thread *thread) {
 #ifdef _WIN32
@@ -98,6 +121,8 @@ bool thread_terminate(Thread *thread) {
 #else
     return pthread_cancel(thread->handle) == 0;
 #endif
+    if (thread->__data != NULL)
+        free(thread->__data);
     free(thread);
 }
 

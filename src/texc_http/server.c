@@ -33,7 +33,7 @@ void __delete_port_file_sig(int sig) {
     exit(1);
 }
 
-THREAD_CALLBACK __handle_client(void *data) {
+void __handle_client(void *data) {
     SOCKET *client = (SOCKET *)data;
     char *buffer;
 
@@ -43,7 +43,7 @@ THREAD_CALLBACK __handle_client(void *data) {
 
         socket_close(*client);
         free(client);
-        return THREAD_RETURN;
+        return;
     }
 
     if (size == -2) {
@@ -54,7 +54,7 @@ THREAD_CALLBACK __handle_client(void *data) {
         response_free(response);
 
         LOGGER_WARNING("client socket recv timeout");
-        return THREAD_RETURN;
+        return;
     }
 
     Request *request = request_parse(buffer);
@@ -70,7 +70,7 @@ THREAD_CALLBACK __handle_client(void *data) {
         response_free(response);
 
         LOGGER_WARNING("client socket recv invalid request format");
-        return THREAD_RETURN;
+        return;
     }
 
     Response *response = __server_handle_api(request);
@@ -81,10 +81,10 @@ THREAD_CALLBACK __handle_client(void *data) {
     free(client);
     response_free(response);
 
-    return THREAD_RETURN;
+    return;
 }
 
-THREAD_CALLBACK __server_start(void *_) {
+void __server_start(void *_) {
     while (1) {
         SOCKET sock = socket_accept(__server_socket);
 
@@ -111,8 +111,6 @@ THREAD_CALLBACK __server_start(void *_) {
         __client_threads[__client_thread_len++] =
             thread_create(__handle_client, (void *)client);
     }
-
-    return THREAD_RETURN;
 }
 
 bool server_init(int port, const char *host) {
