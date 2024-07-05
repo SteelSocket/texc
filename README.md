@@ -1,6 +1,6 @@
 # texc
 
-A texc expander program written in pure c for windows and linux. Inspired by [espanso](https://github.com/espanso/espanso).
+A ascii text expander program written in pure c for windows and linux. Inspired by [espanso](https://github.com/espanso/espanso).
 
 
 # Features
@@ -12,8 +12,8 @@ A texc expander program written in pure c for windows and linux. Inspired by [es
 # Building
 
 ```
-cmake -S . -B build
-cmake --build build -DCMAKE_BUILD_TYPE=Release
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build
 ```
 
 If you are on linux you need to install the following packages: libx11-dev, libxtst-dev.  

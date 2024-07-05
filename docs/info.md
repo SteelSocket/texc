@@ -13,6 +13,12 @@ The command line interface is documented in the `-h, --help` flags. CLI uses the
 
 # Text Expansion System
 
+## Save Folder
+
+All text expansions are saved in the local app data folder.  
+On Windows: %LOCALAPPDATA%/texc/matches  
+On Linux: ~/.local/share/texc/matches
+
 ## Identifiers
 
 Identifiers are used to delete, modifiy or list text expansions. 

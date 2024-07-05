@@ -25,25 +25,31 @@ Example: `<shift><a></shift>` will hold shift while typing a
 ## `<character>` Tags
 - They are single character tags which must be lower case alpha numeric values.
 - Can be used as standalone tag or as a container
+- Is undoable
 - See [info.md](./info.md/#difference-between-a-and-a) for more information
 - Example: `<a>`, `<1>`, `<z>`, `...`
 
 ## `<enter>` Tag
 - Can be used as standalone tag or as a container
 - Presses and Releases the enter key
+- Is not undoable
 
 ## `<backspace>` Tag
 - Can be used as standalone tag or as a container
 - Presses and Releases the backspace key
+- Is not undoable
 
 ## `<tab>` Tag
 - Can be used as standalone tag or as a container
 - Presses and Releases the tab key
+- Is not undoable
 
 ## `<shift>` Tag
 - Can be used as standalone tag or as a container
 - Presses and Releases the shift key
+- Is not undoable
 
 ## `<ctrl>` Tag
 - Can be used as standalone tag or as a container
 - Presses and Releases the ctrl key
+- Is not undoable
