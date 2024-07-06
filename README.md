@@ -12,8 +12,8 @@ A ascii text expander program written in pure c for windows and linux. Inspired 
 # Building
 
 ```
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build
+cmake -S . -B build
+cmake --build build --config Release
 ```
 
 If you are on linux you need to install the following packages: libx11-dev, libxtst-dev.  

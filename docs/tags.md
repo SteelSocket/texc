@@ -1,8 +1,8 @@
 # Tags
-Tags are special syntax that modify how `text` gets matched or are used to press non character keys such as enter, tab, backspace, etc.  
-Tags are written in the style of xml tags, i.e `<tag></tag>` or `<tag>`  
+Tags are special syntax that modify how the match text gets matched or are used to press non character keys such as enter, tab, backspace, etc.  
+Tags are written in the style of html tags, i.e `<tag></tag>` or `<tag>`  
 
-# `Text` Section Tags
+# `Match` Section Tags
 
 ## `<enter>` Tag
 - Is used to detect the user pressing enter

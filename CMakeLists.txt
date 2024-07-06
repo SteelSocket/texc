@@ -35,3 +35,20 @@ target_link_libraries(texc
     texc_match
     texc_keyhook
 )
+
+# CPack configuration
+set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY OFF)
+
+if (WIN32 AND ${CMAKE_SYSTEM_PROCESSOR} STREQUAL "AMD64")
+    set(CMAKE_SYSTEM_PROCESSOR "x86_64")
+endif()
+set(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${CMAKE_PROJECT_VERSION}-${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
+
+if(WIN32)
+    set(CPACK_GENERATOR "ZIP")
+elseif(UNIX)
+    set(CPACK_GENERATOR "TGZ")
+endif()
+
+install(TARGETS texc DESTINATION .)
+include(CPack)
