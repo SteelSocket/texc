@@ -1,18 +1,7 @@
-#define UTILS_IMPLEMENTATION
-#include "texc_utils/array.h"
-#include "texc_utils/csv.h"
-#include "texc_utils/filelock.h"
-#include "texc_utils/http_request.h"
-#include "texc_utils/http_response.h"
-#include "texc_utils/logger.h"
-#include "texc_utils/path.h"
-#include "texc_utils/socket.h"
-#include "texc_utils/str.h"
-#include "texc_utils/thread.h"
-#include "texc_utils/url.h"
-
 #include "args.h"
 #include "subcmds.h"
+
+#include "texc_utils/utils.h"
 
 int main(int argc, char *argv[]) {
     ArgParser *parser = args_init();
