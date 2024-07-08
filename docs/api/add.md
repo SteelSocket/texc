@@ -1,5 +1,5 @@
 # Path
-http://127.0.0.1:{port}/add
+http://127.0.0.1:{port}/add?token={TOKEN}
 
 # Usage
 

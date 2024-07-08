@@ -154,6 +154,16 @@ Response *__handle_config(Request *request) {
 }
 
 Response *__server_handle_api(Request *request) {
+    const char *token = request_get_query(request, "token");
+    if (token == NULL) {
+        LOGGER_WARNING("No token specified");
+        return __RESPONSE_ERR("Session token not given");
+    } else if (!str_eq(token, data.token)) {
+        LOGGER_WARNING("Invalid token specified");
+        return __RESPONSE_ERR("The given token does not match with the current session token");
+    }
+
+
     if (str_eq(request->path, "/add"))
         return __handle_add(request);
 

@@ -1,5 +1,5 @@
 # Path
-http://127.0.0.1:{port}/remove
+http://127.0.0.1:{port}/remove?token={TOKEN}
 
 # Usage
 

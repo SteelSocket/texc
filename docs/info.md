@@ -4,6 +4,10 @@ The command line interface is documented in the `-h, --help` flags. CLI uses the
 
 # Http Rest Api
 
+Using the rest api requires a session token from the port file after the server is launched. The token is taken as a url param `token={TOKEN}`. The path of the port file is:  
+On Windows: %LOCALAPPDATA%/texc/port  
+On Linux: ~/.local/share/texc/port
+
 1. [/version](./api/version.md)
 2. [/add](./api/add.md)
 3. [/remove](./api/remove.md)

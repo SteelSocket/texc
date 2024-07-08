@@ -67,6 +67,11 @@ static bool __is_in_background;
 static LogLevel __logger_level = LOGGER_LEVEL_INFO;
 
 void logger_init(const char *log_file) {
+    if (log_file == NULL) {
+        __log_file = NULL;
+        return;
+    }
+
     __log_file = fopen(log_file, "w");
 #ifdef _WIN32
     __is_in_background = getenv("TEXC_BACKGROUND") != NULL;

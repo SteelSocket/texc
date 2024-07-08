@@ -1,5 +1,5 @@
 # Path
-http://127.0.0.1:{port}/config
+http://127.0.0.1:{port}/config?token={TOKEN}
 
 # Usage
 Used to change the attributes of text expansions

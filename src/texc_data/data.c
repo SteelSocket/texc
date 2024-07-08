@@ -4,9 +4,11 @@
 
 #include "../texc_utils/logger.h"
 #include "../texc_utils/path.h"
+#include "../texc_utils/array.h"
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 Data data = {0};
 
@@ -37,7 +39,20 @@ char *data_get_port_file() {
     return port_path;
 }
 
+void __generate_token(char token[64]) {
+    static const char CHARSET[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+    int length = 63;
+    while (length-- > 0) {
+        size_t index = (double) rand() / RAND_MAX * ((int)(array_len(CHARSET)) - 1);
+        *token++ = CHARSET[index];
+    }
+    *token = '\0';
+}
+
 bool data_init() {
+    srand(time(NULL));
+
     // Create texc dir in data folder
     char *data_dir = data_get_dir();
     if (!path_exists(data_dir) || !path_is_dir(data_dir)) {
@@ -82,6 +97,10 @@ bool data_init() {
         return false;
 
     data_io_load();
+
+    __generate_token(data.token);
+    LOGGER_FORMAT_LOG(LOGGER_INFO, "Generated token: %s", data.token);
+
     return true;
 }
 

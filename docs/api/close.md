@@ -1,5 +1,5 @@
 # Path
-http://127.0.0.1:{port}/close
+http://127.0.0.1:{port}/close?token={TOKEN}
 
 # Usage
 

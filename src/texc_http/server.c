@@ -141,7 +141,7 @@ bool server_init(int port, const char *host) {
     }
 
     char *port_str;
-    str_format(port_str, "%d", port);
+    str_format(port_str, "%d\n%s", port, data.token);
     filelock_write(__port_lock, port_str);
     free(port_str);
 
@@ -170,29 +170,3 @@ void server_stop() {
     LOGGER_INFO("server stoped");
 }
 
-int server_get_active_port() {
-    char *port_path = data_get_port_file();
-    if (!path_is_file(port_path)) {
-        free(port_path);
-        return -1;
-    }
-
-    FileLock lock = filelock_acquire(port_path);
-
-    // texc is not running as port lock is not locked
-    if (lock != FILELOCK_ERROR) {
-        filelock_close(&lock);
-        free(port_path);
-        return -1;
-    }
-
-    char *contents = path_read_all(port_path);
-    int port = atoi(contents);
-
-    free(contents);
-    free(port_path);
-
-    if (port < 0)
-        return 0;
-    return port;
-}

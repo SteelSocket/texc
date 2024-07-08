@@ -15,6 +15,7 @@ typedef struct {
     Settings settings;
 
     Mutex *mutex;
+    char token[64];
 
     ExpandText **exptexts;
     size_t exptext_len;

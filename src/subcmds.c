@@ -15,10 +15,11 @@
 #include <windows.h>
 #endif
 
-#define __check_server_running(port)                                 \
+#define __check_server_running(client)                               \
     do {                                                             \
-        port = server_get_active_port();                             \
-        if (port <= 0) {                                             \
+        int cerror;                                                  \
+        client = client_prepare(&cerror);                            \
+        if (cerror != 0) {                                           \
             printf(                                                  \
                 "Error: texc server is not started please run texc " \
                 "first\n");                                          \
@@ -26,9 +27,12 @@
         }                                                            \
     } while (0)
 
-char *__execute_request(int port, const char *url) {
+char *__execute_request(TexcClient client, UrlBuilder ub) {
+    char *url = url_builder_prepare(ub);
     int error;
-    Response *response = client_request(port, url);
+    Response *response = client_request(client, url);
+    free(url);
+
     if (response == NULL) {
         return NULL;
     }
@@ -56,28 +60,21 @@ void __run_in_background() {
 #endif
 }
 
-bool __append_identifier(Args *args, char **url, const char *identifier,
+bool __append_identifier(Args *args, UrlBuilder *ub, const char *identifier,
                          const char *print_info) {
-    char *encoded = url_encode(identifier);
-
     if (argparse_flag_found(args, "--id")) {
-        str_rformat(*url, "id=%s", encoded);
+        url_builder_add_param(ub, "id", identifier);
         printf("%s by id: \"%s\"\n", print_info, identifier);
-        free(encoded);
         return true;
     } else if (argparse_flag_found(args, "--group")) {
-        str_rformat(*url, "group=%s", encoded);
+        url_builder_add_param(ub, "group", identifier);
         printf("%s by group: \"%s\"\n", print_info, identifier);
-        free(encoded);
         return true;
     } else {
-        str_rformat(*url, "match=%s", encoded);
+        url_builder_add_param(ub, "match", identifier);
         printf("%s by match: \"%s\"\n", print_info, identifier);
-        free(encoded);
         return true;
     }
-
-    free(encoded);
     return false;
 }
 
@@ -94,7 +91,10 @@ int subcmd_start_server(Args *args) {
         return 1;
     }
 
-    if (server_get_active_port() != -1) {
+    int cerror;
+    client_prepare(&cerror);
+
+    if (cerror == 0) {
         printf("Error: texc is already running\n");
         return 1;
     }
@@ -134,13 +134,19 @@ int subcmd_start_server(Args *args) {
 }
 
 int subcmd_close_server(Args *args) {
-    int port;
-    __check_server_running(port);
+    TexcClient client;
+    __check_server_running(client);
 
-    char *body = __execute_request(port, "/close");
+    UrlBuilder ub = url_builder_new("/close");
+    url_builder_add_param(&ub, "token", client.token);
+
+    char *body = __execute_request(client, ub);
+    url_builder_free(&ub);
+
     if (body == NULL) {
         return 1;
     }
+
     printf("%s\n", body);
     free(body);
 
@@ -148,103 +154,87 @@ int subcmd_close_server(Args *args) {
 }
 
 int subcmd_add_exptexts(Args *args) {
-    int port;
-    __check_server_running(port);
+    TexcClient client;
+    __check_server_running(client);
 
-    char *match = url_encode(argparse_positional_get(args, "match"));
-    char *expand = url_encode(argparse_positional_get(args, "expand"));
-    char *enabled = url_encode(argparse_flag_get(args, "--enable"));
-    char *group = url_encode(argparse_flag_get(args, "--group"));
+    UrlBuilder ub = url_builder_new("/add");
+    url_builder_add_param(&ub, "token", client.token);
 
-    char *url;
-    str_format(url, "/add?match=%s&expand=%s&enabled=%s&group=%s", match,
-               expand, enabled, group);
+    url_builder_add_param(&ub, "match", argparse_positional_get(args, "match"));
+    url_builder_add_param(&ub, "expand",
+                          argparse_positional_get(args, "expand"));
+    url_builder_add_param(&ub, "enabled", argparse_flag_get(args, "--enable"));
+    url_builder_add_param(&ub, "group", argparse_flag_get(args, "--group"));
 
     printf("Adding %s -> %s\n", argparse_positional_get(args, "match"),
            argparse_positional_get(args, "expand"));
 
-    char *body = __execute_request(port, url);
-    int ret_code = 1;
+    char *body = __execute_request(client, ub);
+    url_builder_free(&ub);
 
     if (body != NULL) {
         printf("%s\n", body);
         free(body);
-        ret_code = 0;
+        return 0;
     }
-
-    free(url);
-    free(match);
-    free(expand);
-    free(enabled);
-    free(group);
-
-    return ret_code;
+    return 1;
 }
 
 int subcmd_remove_exptexts(Args *args) {
-    int port;
-    __check_server_running(port);
+    TexcClient client;
+    __check_server_running(client);
 
-    char *url;
-    str_mcpy(url, "/remove?");
+    UrlBuilder ub = url_builder_new("/remove");
+    url_builder_add_param(&ub, "token", client.token);
 
     const char *identifier = argparse_positional_get(args, "identifier");
+
     bool is_valid_iden =
-        __append_identifier(args, &url, identifier, "Removing text expansions");
+        __append_identifier(args, &ub, identifier, "Removing text expansions");
 
     if (!is_valid_iden) {
         // Currently this case will not occur
         printf("Invalid Identifier\n");
-        free(url);
+        url_builder_free(&ub);
         return 1;
     }
 
-    char *body = __execute_request(port, url);
+    char *body = __execute_request(client, ub);
+    url_builder_free(&ub);
+
     if (body == NULL) {
-        free(url);
         return 1;
     }
     printf("%s\n", body);
-
     free(body);
-    free(url);
 
     return 0;
 }
 
 int subcmd_list_exptexts(Args *args) {
-    int port;
-    __check_server_running(port);
+    TexcClient client;
+    __check_server_running(client);
 
-    char *url;
-    bool question_inserted = false;
-    str_mcpy(url, "/list");
+    UrlBuilder ub = url_builder_new("/list");
+    url_builder_add_param(&ub, "token", client.token);
 
     if (argparse_flag_found(args, "--columns")) {
-        char *url_columns = url_encode(argparse_flag_get(args, "--columns"));
-        str_rformat(url, "?columns=%s", url_columns);
-        question_inserted = true;
-        free(url_columns);
+        url_builder_add_param(&ub, "columns",
+                              argparse_flag_get(args, "--columns"));
     }
 
     if (argparse_flag_found(args, "--where")) {
-        char *url_where = url_encode(argparse_flag_get(args, "--where"));
-
-        if (!question_inserted) {
-            str_rformat(url, "?condition=%s", url_where);
-            question_inserted = true;
-        } else {
-            str_rformat(url, "&condition=%s", url_where);
-        }
-        free(url_where);
+        url_builder_add_param(&ub, "condition",
+                              argparse_flag_get(args, "--where"));
     }
 
-    char *body = __execute_request(port, url);
-    free(url);
+    char *body = __execute_request(client, ub);
+    url_builder_free(&ub);
 
     if (body == NULL) {
         return 1;
     }
+
     if (str_count(body, '\n') == 1) {
         free(body);
         printf("Empty!\n");
@@ -257,35 +247,36 @@ int subcmd_list_exptexts(Args *args) {
 }
 
 int subcmd_config_exptexts(Args *args) {
-    int port;
-    __check_server_running(port);
+    TexcClient client;
+    __check_server_running(client);
 
-    char *url;
-    str_mcpy(url, "/config?");
+    UrlBuilder ub = url_builder_new("/list");
+    url_builder_add_param(&ub, "token", client.token);
 
     const char *identifier = argparse_positional_get(args, "identifier");
-    bool is_valid_iden = __append_identifier(args, &url, identifier,
+    bool is_valid_iden = __append_identifier(args, &ub, identifier,
                                              "Configuring text expansions");
 
     if (!is_valid_iden) {
         // Currently this case will not occur
         printf("Invalid Identifier\n");
-        free(url);
+        url_builder_free(&ub);
         return 1;
     }
 
     if (argparse_flag_found(args, "--enable")) {
-        str_rformat(url, "&enabled=%s", argparse_flag_get(args, "--enable"));
+        url_builder_add_param(&ub, "enabled",
+                              argparse_flag_get(args, "--enable"));
     }
 
-    char *body = __execute_request(port, url);
+    char *body = __execute_request(client, ub);
+    url_builder_free(&ub);
+
     if (body == NULL) {
-        free(url);
         return 1;
     }
     printf("%s\n", body);
     free(body);
-    free(url);
 
     return 0;
 }

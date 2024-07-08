@@ -28,13 +28,6 @@ void server_start();
  */
 void server_stop();
 
-/**
- * @brief Gets the active port of already running texc server
- * Used by the client for making api calls
- *
- * @return port of the texc server or -1 if texc is not running
- */
-int server_get_active_port();
 
 /**
  * @brief Handles the request as per api implemented in server_api.c

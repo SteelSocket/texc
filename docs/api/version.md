@@ -1,5 +1,5 @@
 # Path
-http://127.0.0.1:{port}/version
+http://127.0.0.1:{port}/version?token={TOKEN}
 
 # Usage
 

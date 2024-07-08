@@ -1,5 +1,5 @@
 # Path
-http://127.0.0.1:{port}/list
+http://127.0.0.1:{port}/list?token={TOKEN}
 
 # Usage
 
