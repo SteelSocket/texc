@@ -59,7 +59,7 @@ typedef struct {
  * @return The tagmap of the given tag. This function does not fail due to
  * tagmap_validate().
  */
-const TagMap tagmap_get(const char *tag_name, bool is_match);
+TagMap tagmap_get(const char *tag_name, bool is_match);
 
 /**
  * @brief Checks if the given tag contains valid match or expand tags

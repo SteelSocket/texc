@@ -36,6 +36,12 @@ target_link_libraries(texc
     texc_keyhook
 )
 
+if(MSVC)
+    target_compile_options(texc PRIVATE /W4)
+else()
+    target_compile_options(texc PRIVATE -Wall -Wextra)
+endif()
+
 # CPack configuration
 set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY OFF)
 

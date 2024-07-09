@@ -14,17 +14,19 @@ void logger_set_level(LogLevel level);
 
 #ifndef __FUNCTION_NAME__
 #ifdef _WIN32
-
 #define __FUNCTION_NAME__ __FUNCTION__
-#define __FILENAME__ \
-    (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
-
 #else
-
 #define __FUNCTION_NAME__ __func__
-#define __FILENAME__ \
-    (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
+#endif
+#endif
 
+#ifndef __FILE_NAME__
+#ifdef _WIN32
+#define __FILE_NAME__ \
+    (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
+#else
+#define __FILE_NAME__ \
+    (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 #endif
 #endif
 
@@ -39,14 +41,14 @@ void __logger_log(const char *message, const char *file_name, int line_no,
         free(_f);                                     \
     } while (0)
 
-#define LOGGER_INFO(message)                                         \
-    __logger_log(message, __FILENAME__, __LINE__, __FUNCTION_NAME__, \
+#define LOGGER_INFO(message)                                          \
+    __logger_log(message, __FILE_NAME__, __LINE__, __FUNCTION_NAME__, \
                  LOGGER_LEVEL_INFO)
-#define LOGGER_ERROR(message)                                        \
-    __logger_log(message, __FILENAME__, __LINE__, __FUNCTION_NAME__, \
+#define LOGGER_ERROR(message)                                         \
+    __logger_log(message, __FILE_NAME__, __LINE__, __FUNCTION_NAME__, \
                  LOGGER_LEVEL_ERROR)
-#define LOGGER_WARNING(message)                                      \
-    __logger_log(message, __FILENAME__, __LINE__, __FUNCTION_NAME__, \
+#define LOGGER_WARNING(message)                                       \
+    __logger_log(message, __FILE_NAME__, __LINE__, __FUNCTION_NAME__, \
                  LOGGER_LEVEL_WARNING)
 
 #ifdef UTILS_IMPLEMENTATION

@@ -130,7 +130,6 @@ static int __handle_ini(void *user, const char *section, const char *key,
                         const char *value) {
     __INISettings *isettings = (__INISettings *)user;
 
-    Settings *settings = &isettings->settings;
     char ***errors = &isettings->errors;
 
     if (str_eq(section, "__internal__")) {
@@ -194,7 +193,7 @@ Settings settings_load(const char *file_path) {
     }
 
     if (isettings.error_count) {
-        for (int i = 0; i < isettings.error_count; i++) {
+        for (size_t i = 0; i < isettings.error_count; i++) {
             LOGGER_WARNING(isettings.errors[i]);
             free(isettings.errors[i]);
         }

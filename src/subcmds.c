@@ -29,7 +29,6 @@
 
 char *__execute_request(TexcClient client, UrlBuilder ub) {
     char *url = url_builder_prepare(ub);
-    int error;
     Response *response = client_request(client, url);
     free(url);
 

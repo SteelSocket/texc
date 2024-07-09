@@ -125,15 +125,15 @@ void __tagmap_validate(Tag *tag, bool is_match, char **error_msg) {
     }
 }
 
-const TagMap tagmap_get(const char *tag_name, bool is_match) {
+TagMap tagmap_get(const char *tag_name, bool is_match) {
     // Handle single character presses
     if (strlen(tag_name) == 1) {
         // Allow tag_name with only alpha numeric character of lower case
         if (is_match || !isalnum(*tag_name) ||
             (isalpha(*tag_name) && !islower(*tag_name)))
-            return (const TagMap){0};
+            return (TagMap){0};
 
-        return (const TagMap){
+        return (TagMap){
             .tag_name = tag_name,
             .data = (void *)tag_name,
             .flags = TAGMAP_FLAGS_NONE,
@@ -159,7 +159,7 @@ const TagMap tagmap_get(const char *tag_name, bool is_match) {
         }
     }
 
-    return (const TagMap){0};
+    return (TagMap){0};
 }
 
 char *tagmap_validate(Tag *tag, bool is_match) {

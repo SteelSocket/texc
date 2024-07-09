@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
     socket_init();
 
     const char *cmd_name = args->parser->name;
-    int exit_code;
+    int exit_code = 1;
 
     if (str_eq(cmd_name, "texc")) {
         exit_code = subcmd_start_server(args);

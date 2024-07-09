@@ -60,7 +60,7 @@ void expandtext_free(ExpandText *exptext) {
     free(exptext);
 }
 
-void __expandtext_add(ExpandText *exptext, int index) {
+void __expandtext_add(ExpandText *exptext, size_t index) {
     if (index >= data.exptext_cap) {
         data.exptext_cap = data.exptext_cap * 2;
         data.exptexts =
@@ -81,7 +81,7 @@ char *expandtext_add(DataSqlRow *row) {
     data_sql_add(row);
 
     LOGGER_FORMAT_LOG(LOGGER_INFO,
-                      "Added record to expandtexts table with id=%zd", row->id);
+                      "Added record to expandtexts table with id=%u", (unsigned int)row->id);
     return NULL;
 }
 
@@ -144,7 +144,8 @@ char *__prepare_update_config(Request *request, char **error) {
             return NULL;
         }
 
-        str_rformat(update, "enabled = %d,", str_eq(enable, "true"));
+        bool enabled = str_eq(enable, "true");
+        str_rformat(update, "enabled = %d,", enabled);
     }
 
     // Remove trailing comma
