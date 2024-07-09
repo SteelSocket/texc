@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "array.h"
 #include "str.h"
 #include "url.h"
 
@@ -29,11 +30,11 @@ char *request_get_query(Request *request, const char *param);
 
 #ifdef UTILS_IMPLEMENTATION
 
-void __parse_queries(char *url, Request *request) {
+bool __parse_queries(char *url, Request *request) {
     if (strchr(url, '?') == NULL) {
         request->query_count = 0;
         request->queries = NULL;
-        return;
+        return true;
     }
 
     request->query_count = 1;
@@ -42,35 +43,63 @@ void __parse_queries(char *url, Request *request) {
     // Also modifies request->path to be only pure path
     char *token = strtok_r(url, "?", &context);
 
-    {
-        bool is_valid_query = false;
-        char *copy_context = context;
-        while (*copy_context++ != '\0') {
-            if (*copy_context == '&') {
-                request->query_count += 1;
-            } else if (*copy_context == '=' && (*copy_context + 1) != '\0') {
-                is_valid_query = true;
-            }
+    request->query_count = 0;
+    request->queries = NULL;
+
+    bool param_start = true;
+    bool value_start = false;
+
+    char *copy_ctx = context;
+    while (*copy_ctx != '\0') {
+        if (*copy_ctx == ' ') {
+            break;
         }
 
-        if (!is_valid_query) {
-            request->query_count = 0;
-            request->queries = NULL;
-            return;
+        if (*copy_ctx == '=') {
+            if (param_start) {
+                param_start = false;
+                value_start = true;
+            } else {
+                return false;
+            }
+        } else if (*copy_ctx == '&') {
+            if (value_start) {
+                value_start = false;
+                param_start = true;
+            } else {
+                return false;
+            }
+        } else if (!isalnum(*copy_ctx) &&
+            (*copy_ctx != '%' && *copy_ctx != '-' && *copy_ctx != '.' &&
+             *copy_ctx != '~' && *copy_ctx != '_' && *copy_ctx != '+')) {
+            return false;
         }
+
+        copy_ctx++;
     }
 
-    request->queries = malloc(request->query_count * sizeof(UrlQuery));
+    request->queries = array_create(UrlQuery);
 
-    int i = 0;
     while ((token = strtok_r(NULL, "&", &context)) != NULL) {
         char *p_context;
         char *param = strtok_r(token, "=", &p_context);
         char *value = strtok_r(NULL, "=", &p_context);
 
-        request->queries[i] = (UrlQuery){url_decode(param), url_decode(value)};
-        i++;
+        if (param == NULL || value == NULL) {
+            if (request->query_count == 0)
+                return false;
+            request->query_count--;
+            continue;
+        }
+
+        char *dparam = url_decode(param);
+        char *dvalue = url_decode(value);
+        UrlQuery uquery = (UrlQuery){dparam, dvalue};
+
+        array_resize_add(request->queries, request->query_count, uquery, UrlQuery);
     }
+
+    return true;
 }
 
 Request *request_parse(char buffer[]) {
@@ -88,11 +117,17 @@ Request *request_parse(char buffer[]) {
 
     token = strtok_r(NULL, " ", &context);
     if (token == NULL) {
-        free(request);
         free(request->method);
+        free(request);
         return NULL;
     }
-    __parse_queries(token, request);
+    bool success = __parse_queries(token, request);
+    if (!success) {
+        free(request->method);
+        free(request);
+        return NULL;
+    }
+
     request->path = url_decode(token);
 
     char *double_newline = strstr(context, "\r\n\r\n");
@@ -101,7 +136,7 @@ Request *request_parse(char buffer[]) {
         request_free(request);
         return NULL;
     }
-    char *body = double_newline + strlen("\r\n\r\n");
+    char *body = double_newline + 4;
     request->body = strdup(body);
 
     return request;
