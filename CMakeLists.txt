@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.29.0)
-project(texc VERSION 0.4.0)
+project(texc VERSION 0.4.1)
 
 set(EXTERNAL_INCLUDE_DIRS "" CACHE INTERNAL "")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
